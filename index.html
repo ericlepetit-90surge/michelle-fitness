@@ -127,6 +127,7 @@ nav.tabs button[aria-current="true"]{color:var(--sc);background:color-mix(in srg
 .target.down b{color:var(--warn)}
 .welcome{gap:14px;font-size:19px;line-height:1.45}.welcome h2{margin:0;font-size:28px}.welcome p{margin:0}.wbig{font-size:21px;font-weight:600}
 .wgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.wgrid label{display:flex;flex-direction:column;gap:4px}
+.wsteps{margin:0;padding-left:24px;display:flex;flex-direction:column;gap:12px;font-size:18px;line-height:1.45}.wnote{font-size:17px;line-height:1.45;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--sc) 12%,var(--sunk))}
 .wlist{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:10px}
 .wdots{display:flex;gap:6px}.wdots span{width:28px;height:6px;border-radius:3px;background:var(--line)}.wdots span.on{background:var(--sc)}
 .wweek{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.wweek div{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 4px;border-radius:14px;border:1.5px solid color-mix(in srgb,var(--sc) 50%,var(--line));font-size:16px;font-weight:600}.wweek span{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--sc);color:var(--on-sc);font-size:18px}
@@ -1287,6 +1288,7 @@ function vGuide(){
       <li><b>Lift heavy.</b> Pick a weight where the last 2 reps of every set are hard, but your form stays clean. If you could easily do 3 or more extra reps, it's too light. Light "toning" weights won't build your glutes.</li>
       <li><b>Show up 3 times a week, every week.</b> Missed workouts slow results more than anything else. Short and done beats perfect and skipped.</li>
       <li><b>Keep adding weight.</b> Muscle grows when you ask it to do a bit more than last time: one more rep, or a little more weight.</li></ol>`,"#ff6fae")
+  +card("How your glutes grow",GROW_HTML,"#ff6fae")
   +card("How the app moves you up",`<ul class="big">
       <li>Every exercise shows a <b>Target</b> based on what you logged last time. Check the <b>Next</b> tab before you go.</li>
       <li>Hit the top of the rep range on every set? The app tells you to <b>add weight</b> next time <span class="badge">↑ Up</span>.</li>
@@ -1902,9 +1904,16 @@ async function initLocalPhotos(){
 /* ---------- first-run targets from height and weight ---------- */
 S.wstep=1;
 const DAYN=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const GROW_HTML=`<ol class="wsteps">
+  <li><b>Push: send the signal.</b> A muscle only grows when you ask it to do more than it's used to. The last 2–3 reps of every set should feel hard, slow and shaky. That's the part that builds muscle. If you could easily do 5 more, the weight is too light.</li>
+  <li><b>Rest and protein: the rebuild.</b> The muscle actually grows <i>after</i> the workout, over the next 1–2 days, while you rest. Your body repairs it a little bigger and stronger, using the protein you eat.</li>
+  <li><b>Repeat: stack it up.</b> One workout changes nothing you can see. Each one adds a tiny bit, and 3 a week for months adds up to a real change. Showing up beats any perfect workout: an OK workout still counts, and if you miss a day, just do the next one.</li>
+  <li><b>Then add weight.</b> As you get stronger, the old weight stops being a challenge, so the signal stops. That's why the app keeps moving your weights up.</li></ol>
+  <div class="wnote"><b>Why glutes need you to push:</b> they're the biggest, strongest muscle in your body, so they need real weight to be challenged, often more than you'd expect. Hip thrusts and leg press are where you can go heaviest, so push those hardest.</div>
+  <div class="wnote"><b>Timeline:</b> weeks 1–4 you get stronger fast (your brain is learning to use the muscle). Around 6–8 weeks they start to feel firmer, and by 3 months you'll see it in photos. Muscle responds at any age; it just needs the push and the consistency.</div>`;
 function vSetup(){return "";}
 function vWelcome(){
-  const st=S.settings,step=S.wstep,dots=`<div class="wdots">${[1,2,3].map(i=>`<span class="${i<=step?"on":""}"></span>`).join("")}</div>`;
+  const st=S.settings,step=S.wstep,dots=`<div class="wdots">${[1,2,3,4].map(i=>`<span class="${i<=step?"on":""}"></span>`).join("")}</div>`;
   if(step===1)return `<section class="card nextcard welcome" style="--sc:#ff6fae">${dots}
     <h2>Welcome, Michelle 💪</h2>
     <p>This app is your coach in your pocket. It tells you what to do at the gym, and how much weight to use, every time.</p>
@@ -1926,12 +1935,17 @@ function vWelcome(){
     </ul>
     <p class="note">Everything saves on your phone automatically.</p>
     <div class="row2b"><button class="btn ghost" data-act="wback">Back</button><button class="btn" data-act="wnext">Next</button></div></section>`;
+  if(step===3)return `<section class="card nextcard welcome" style="--sc:#ff6fae">${dots}
+    <h2>How your glutes grow</h2>
+    <p class="wbig">Two things build muscle: pushing yourself, and showing up every week.</p>
+    ${GROW_HTML}
+    <div class="row2b"><button class="btn ghost" data-act="wback">Back</button><button class="btn" data-act="wnext">Next</button></div></section>`;
   const days=Object.keys(WEEK).map(Number).sort().map(d=>DAYN[d]);
   return `<section class="card nextcard welcome" style="--sc:#2dd4bf">${dots}
     <h2>Your first week</h2>
     <p class="wbig">You don't need to know everything. You just need to show up 3 times.</p>
     <ul class="wlist">
-      <li><b>Week 1 is for learning.</b> Pick weights that feel comfortable. The app moves you up from there, so you don't have to guess.</li>
+      <li><b>Week 1 is for learning.</b> Pick weights that feel comfortable while you learn each machine. From week 2, push: the last reps should feel hard. The app moves your weights up, so you don't have to guess.</li>
       <li><b>Everyone starts somewhere.</b> Nobody at the gym is watching what weight you use, and staff are happy to show you a machine.</li>
       <li><b>A little sore the next day is normal.</b> It means it's working, and it gets much better by week 2.</li>
       <li><b>Each workout you log makes the next one smarter.</b></li>
@@ -1945,7 +1959,7 @@ document.addEventListener("click",ev=>{
   const b=ev.target.closest('[data-act="setup"],[data-act="wnext"],[data-act="wback"],[data-act="wdone"]');if(!b)return;
   const a=b.dataset.act;
   if(a==="wback"){S.wstep=Math.max(1,S.wstep-1);render();window.scrollTo(0,0);return;}
-  if(a==="wnext"){S.wstep=3;render();window.scrollTo(0,0);return;}
+  if(a==="wnext"){S.wstep=Math.min(4,S.wstep+1);render();window.scrollTo(0,0);return;}
   if(a==="wdone"){S.settings.setupDone=true;S.settings.introDone=true;saveLocal();S.tab="next";render();window.scrollTo(0,0);return;}
   const g=id=>n(document.getElementById(id)?.value);
   const lb=g("su-lb"),ft=g("su-ft"),inch=g("su-in");
