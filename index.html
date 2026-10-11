@@ -264,6 +264,15 @@ input.f.mini{width:80px;display:inline-block;padding:8px;font-size:18px;text-ali
 .guide2 ul.big,.guide2 ol.big{margin:0;padding-left:22px;font-size:18px;line-height:1.5}.guide2 li{margin:6px 0}
 .bigstat b{font:700 44px/1 var(--display);color:var(--sc)}.bigstat{font-size:18px;color:var(--muted)}
 table.tl td{font-size:17px;padding:9px 4px;vertical-align:top}table.tl td:first-child{white-space:nowrap;font-weight:700;color:var(--sc);padding-right:12px}
+.nxlist{display:flex;flex-direction:column}
+.nxrow{display:flex;flex-direction:column;gap:4px;padding:14px 0;border-bottom:1px solid var(--line)}.nxrow:last-child{border-bottom:0}
+.nxtop{display:flex;align-items:center;justify-content:space-between;gap:10px}.nxtop b{font-size:20px;line-height:1.25}
+.nxtgt{font:600 20px var(--mono);color:var(--ink)}
+.nxor,.nxwhy{font-size:16px;color:var(--muted)}.nxtip{font-size:16px;color:var(--sc)}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pbtn{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1.5px solid color-mix(in srgb,var(--prot) 40%,var(--line));background:color-mix(in srgb,var(--prot) 10%,var(--surface));border-radius:14px;padding:12px;color:var(--ink);cursor:pointer;min-height:72px}
+.pbtn b{font:700 24px/1 var(--display);color:var(--prot)}.pbtn span{font-size:16px;line-height:1.3}
+.pquick{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.pquick .btn{padding:12px 4px;font-size:17px}
 @media (max-width:480px){.meta{grid-template-columns:1fr 1fr}.meta label:last-child:nth-child(3){grid-column:1/-1}.stats{grid-template-columns:1fr 1fr}.stats .stat:nth-child(3){grid-column:1/-1}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -282,7 +291,7 @@ table.tl td{font-size:17px;padding:9px 4px;vertical-align:top}table.tl td:first-
 <nav class="tabs" id="tabs">
   <button data-tab="today">Lift</button>
   <button data-tab="next">Next</button>
-  <button data-tab="food">Food</button>
+  <button data-tab="food">Protein</button>
   <button data-tab="progress">Stats</button>
   <button data-tab="program">Plan</button>
 </nav>
@@ -540,7 +549,7 @@ let WEEK = {1:"Glutes A",3:"Glutes B",5:"Glutes C"};
 let SESSIONS = [...Object.keys(PROGRAM),"Rest"];
 let PLAN_OF = {}; Object.values(PROGRAM).forEach(p=>p.ex.forEach(([n,pl,note,pick])=>{ (pick||[n]).forEach(x=>{ if(!PLAN_OF[x]) PLAN_OF[x]={plan:pl,note}; }); }));
 
-const S = {days:{}, settings:{kcal:1800, protein:110}, date:todayKey(), tab:"today", mode:"loading", db:null, dirty:new Set(), pick:null, reopen:{}, sample:null, sampleText:null, canPhoto:false, look:{q:"",status:"idle",food:null,sel:0,qty:1,msg:"",ctl:null,src:"",edit:false}, foods:{}, photo:{file:null,url:"",status:"idle",items:null,note:"",msg:"",ctl:null}};
+const S = {days:{}, settings:{kcal:1800, protein:110, burnOn:false}, date:todayKey(), tab:"today", mode:"loading", db:null, dirty:new Set(), pick:null, reopen:{}, sample:null, sampleText:null, canPhoto:false, look:{q:"",status:"idle",food:null,sel:0,qty:1,msg:"",ctl:null,src:"",edit:false}, foods:{}, photo:{file:null,url:"",status:"idle",items:null,note:"",msg:"",ctl:null}};
 const timers = {}, chains = {};
 
 function todayKey(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
@@ -852,7 +861,7 @@ function vRecap(k){
     ${R.good.length?`<div class="rc good"><span class="label">What was good</span><ul>${R.good.slice(0,6).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:""}
     ${R.bad.length?`<div class="rc bad"><span class="label">What needs to be better</span><ul>${R.bad.slice(0,6).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:""}
     ${R.next.length?`<div class="rc"><span class="label">Next time</span><ul>${R.next.map(x=>`<li><b>${esc(x.name)}</b>: ${esc(x.text)}</li>`).join("")}</ul></div>`:""}
-    <div class="note" style="color:var(--ink)">Food that day: ${kc} / ${T.kcal} kcal · ${pr} / ${T.protein} g protein${b?.lift?` · Burned lifting about ${b.lift[0]}–${b.lift[1]} kcal (estimate)`:""}${w.avg7?` · Weight 7-day avg ${w.avg7} lb${w.rate!==null&&w.pts.length>=4?` (${w.rate>0?"+":""}${w.rate}/wk)`:""}`:""}</div>
+    <div class="note" style="color:var(--ink)">Protein that day: ${protOf(k)} / ${T.protein} g${w.avg7?` · Weight 7-day avg ${w.avg7} lb`:""}</div>
   </section>`;
 }
 
@@ -898,7 +907,13 @@ function vNext(){
     <h2 style="margin:0">${esc(nx.sess)} <span class="note" style="font-family:var(--body);text-transform:none;letter-spacing:0">${esc(P.focus)}</span></h2>
     ${nx.why?`<div class="note" style="color:var(--ink)">${esc(nx.why)}.</div>`:""}
     ${vCoachNote()}
-    <div class="food">${rows.map(r=>`<div class="it" style="grid-template-columns:1fr auto"><span><b>${esc(r.name)}</b>${r.pick?`<small class="nt">or ${esc(r.pick.filter(x=>x!==r.name).join(", "))}</small>`:""}<small class="nt">${r.t?esc(r.t.why):esc(r.plan)}</small>${r.tip?`<small class="nt" style="color:var(--sc)">💡 ${esc(r.tip)}</small>`:""}</span><span style="text-align:right"><span class="num" style="display:block;font-weight:600">${r.t?esc(r.t.text):esc(r.plan)}</span>${r.t?tag[r.t.kind]:""}</span></div>`).join("")}</div>
+    <div class="nxlist">${rows.map(r=>`<div class="nxrow">
+      <div class="nxtop"><b>${esc(r.name)}</b>${r.t?tag[r.t.kind]:""}</div>
+      ${r.pick?`<div class="nxor">or ${esc(r.pick.filter(x=>x!==r.name).join(", "))}</div>`:""}
+      <div class="nxtgt">${r.t?esc(r.t.text):esc(r.plan)}</div>
+      ${r.t?`<div class="nxwhy">${esc(r.t.why)}</div>`:""}
+      ${r.tip?`<div class="nxtip">💡 ${esc(r.tip)}</div>`:""}
+    </div>`).join("")}</div>
     <button class="btn" data-act="gonext" data-d="${nx.date}" data-s="${esc(nx.sess)}">Start ${esc(nx.sess)}${nx.date===todayKey()?"":" on "+short(nx.date)}</button>
   </section>`+vWeekPlan();
 }
@@ -936,87 +951,49 @@ function vWorkSettings(){
   const T=S.settings,sw=Object.entries(T.swaps||{});
   return `<section class="card"><span class="label">Workout settings</span>
     <label class="tgl"><span>Rest timer after each set</span><input type="checkbox" data-flag="restOn" ${T.restOn===false?"":"checked"}></label>
-    <label class="tgl"><span>Show calories burned (estimate)</span><input type="checkbox" data-flag="burnOn" ${T.burnOn===false?"":"checked"}></label>
-    <label class="wrow"><span>Burn correction %</span><input class="f" data-set="burnPct" inputmode="numeric" value="${n(T.burnPct)||100}"></label>
-    <div class="note">Lifting counts 3–4 kcal per minute from your first to last set, walking 4–5. Watches and formulas often overstate by 20–30%, so lower the % if your weight trend says so.</div>
     ${sw.length?`<span class="label">Always swapped</span>${sw.map(([a,b])=>`<div class="row" style="align-items:center"><span>${esc(a)} → <b>${esc(b)}</b></span><button class="btn ghost small" data-act="swapclear" data-n="${esc(a)}">Undo</button></div>`).join("")}`:""}
   </section>`;
 }
-
+/* protein-only log: day.prot = [{n, p, t}] */
+const PRESETS=[["Protein shake",30],["Greek yogurt, 1 cup",23],["Chicken, 4 oz",35],["Fish, 4 oz",28],["Lean beef, 4 oz",30],["Eggs, 2",12],["Cottage cheese, 1 cup",25],["Protein bar",20],["Tuna, 1 can",25],["Turkey slices, 3 oz",15]];
+function protOf(k){const d=S.days[k];return Math.round((d?.prot||[]).reduce((a,x)=>a+n(x.p),0)+(d?.food||[]).reduce((a,x)=>a+n(x.p),0));}
+function myPresets(){const seen=new Set(PRESETS.map(x=>x[0].toLowerCase())),own=[];
+  sortedKeys().reverse().forEach(k=>(S.days[k].prot||[]).forEach(x=>{const key=x.n.toLowerCase();if(!seen.has(key)&&x.n!=="Quick add"){seen.add(key);own.push([x.n,n(x.p)]);}}));
+  return [...own.slice(0,6),...PRESETS];}
 function vFood(){
-  const k=S.date,d=day(k),f=d?.food||[];
-  const kcal=f.reduce((a,x)=>a+n(x.kcal),0), p=f.reduce((a,x)=>a+n(x.p),0);
-  const T=S.settings;
-  const lk=Math.round(T.kcal-kcal),lp=Math.round(T.protein-p);
-  let h=vSetup()+`<section class="trk">
-    <div class="tk"><span class="label">Calories</span>
-      <div class="big"><b style="color:var(--kcal)">${Math.round(kcal)}</b><span>/ ${T.kcal}</span></div>
-      <div class="bar"><div style="width:${Math.min(100,kcal/T.kcal*100)}%"></div></div><span class="lft">${lk>=0?lk+" left":(-lk)+" over"}</span></div>
-    <div class="tk"><span class="label">Protein</span>
-      <div class="big"><b style="color:var(--prot)">${Math.round(p)}</b><span>/ ${T.protein} g</span></div>
-      <div class="bar p"><div style="width:${Math.min(100,p/T.protein*100)}%"></div></div><span class="lft">${lp>0?lp+" g left":"✓ Target hit"}</span></div>
+  const k=S.date,d=day(k),items=d?.prot||[],old=d?.food||[],T=S.settings,goalP=n(T.protein)||110,got=protOf(k),left=Math.max(0,goalP-got);
+  const wk=[...Array(7)].map((_,i)=>addDays(todayKey(),-i)).filter(x=>x<todayKey()&&(S.days[x]?.prot?.length||S.days[x]?.food?.length));
+  const hit=wk.filter(x=>protOf(x)>=goalP*0.9).length;
+  let h=vSetup()+`<section class="card"><div class="row"><span class="label">Protein ${k===todayKey()?"today":short(k)}</span><span class="note">goal ${goalP} g</span></div>
+    <div class="bigstat" style="--sc:var(--prot)"><b>${got}</b> / ${goalP} g</div>
+    <div class="bar p" style="height:16px"><div style="width:${Math.min(100,got/goalP*100)}%"></div></div>
+    <div class="note" style="color:var(--ink);font-size:18px">${got>=goalP?"✓ Goal reached. Nice work.":`${left} g to go. About ${Math.ceil(left/35)} more ${Math.ceil(left/35)===1?"meal":"meals"} with 30–40 g.`}</div>
+    ${wk.length?`<div class="note">Last 7 days: goal hit on ${hit} of ${wk.length} logged day${wk.length===1?"":"s"}.</div>`:""}
   </section>`;
-  h+=`<section class="card"><span class="label">Eaten</span>${f.length?`<div class="food">${f.map((x,i)=>`<div class="it"><span>${esc(x.n)}</span><span class="num">${Math.round(n(x.kcal))} kcal</span><span class="num">${Math.round(n(x.p))} g</span><button class="link" data-act="delfood" data-i="${i}" aria-label="Remove ${esc(x.n)}">✕</button></div>`).join("")}</div>`:`<div class="empty">Nothing logged for this day yet.</div>`}</section>`;
-  const L=S.look;
-  h+=vQuick();
-  h+=`<section class="card"><span class="label">Add another food</span>
-    <form class="lookf" data-form="look">
-      <input class="f" id="lk" name="q" placeholder="Food, e.g. chicken breast, Greek yogurt" value="${esc(L.q)}" autocomplete="off" enterkeyhint="search">
-      ${false&&S.sampleText?(L.status==="working"?`<div class="row"><span class="thinking">Looking it up…</span><button class="btn ghost small" type="button" data-act="stoplook">Stop</button></div>`:`<button class="btn" type="submit">Look up nutrition</button>`):""}
-      ${L.food?"":`<button class="btn ghost" type="button" data-act="newlabel">Enter label from package</button>`}
-
-      <div class="note">Type the food, then enter the numbers from the package label. Saved labels show up under My foods for one-tap logging next time.</div>
-    </form>
-    ${L.msg?`<div class="note" style="color:var(--warn)">${esc(L.msg)}</div>`:""}
-    ${L.food?vFacts():""}
-    ${Object.keys(S.foods).length&&!L.food?`<span class="label">My foods · from your labels</span><div class="chips">${Object.entries(S.foods).sort((a,b)=>a[1].name.localeCompare(b[1].name)).map(([id,x])=>`<button class="chip mine" type="button" data-act="myfood" data-id="${esc(id)}">${esc(x.name)}</button>`).join("")}</div>`:""}
-    <details><summary>Enter numbers myself</summary>
-      <form class="fadd" data-form="food" style="margin-top:10px">
-        <input class="f" id="fn" name="n" placeholder="Food name" autocomplete="off">
-        <input class="f" id="fk" name="kcal" inputmode="numeric" placeholder="kcal">
-        <input class="f" id="fp" name="p" inputmode="decimal" placeholder="protein g">
-        <button class="btn" type="submit">Add food</button>
-      </form>
-    </details>
+  h+=`<section class="card"><span class="label">Tap to add</span><div class="pgrid">${myPresets().slice(0,12).map(([nm,g])=>`<button class="pbtn" data-act="padd" data-n="${esc(nm)}" data-p="${g}"><b>+${g} g</b><span>${esc(nm)}</span></button>`).join("")}</div>
+    <span class="label">Quick add</span><div class="pquick">${[10,20,30,40].map(g=>`<button class="btn ghost" data-act="padd" data-n="Quick add" data-p="${g}">+${g} g</button>`).join("")}</div>
+    <details><summary>Something else</summary><form class="fadd" data-form="prot" style="margin-top:10px">
+      <input class="f" id="pn" name="n" placeholder="What, e.g. salmon 5 oz" autocomplete="off">
+      <input class="f" id="pp" name="p" inputmode="numeric" placeholder="protein g">
+      <button class="btn" type="submit">Add</button></form>
+      <div class="note">Check the label for grams of protein. It's saved as a button for next time.</div></details>
   </section>`;
-  h+=vPhoto();
-  h+=`<section class="card"><details><summary>Daily targets</summary><div class="meta" style="grid-template-columns:1fr 1fr;margin-top:10px">
-    <label><span class="note">Calories</span><input class="f" id="t-kcal" data-set="kcal" inputmode="numeric" value="${T.kcal}"></label>
-    <label><span class="note">Protein (g)</span><input class="f" id="t-protein" data-set="protein" inputmode="numeric" value="${T.protein}"></label>
-  </div></details></section>`;
+  h+=`<section class="card"><span class="label">Logged ${k===todayKey()?"today":short(k)}</span>${items.length||old.length?`<div class="food">${[...items.map((x,i)=>`<div class="it" style="grid-template-columns:1fr auto auto"><span>${esc(x.n)}</span><span class="num">${Math.round(n(x.p))} g</span><button class="link" data-act="pdel" data-i="${i}" aria-label="Remove ${esc(x.n)}">✕</button></div>`),...old.map(x=>`<div class="it" style="grid-template-columns:1fr auto"><span>${esc(x.n)}</span><span class="num">${Math.round(n(x.p))} g</span></div>`)].join("")}</div>`:`<div class="empty">Nothing yet. Tap a food above after each meal.</div>`}</section>`;
+  h+=`<section class="card"><details><summary>Protein goal: ${goalP} g a day</summary><label class="wrow" style="margin-top:10px"><span>Grams a day</span><input class="f" data-set="protein" inputmode="numeric" value="${goalP}"></label><div class="note">About 0.8 g for every pound you weigh, 30–40 g at each meal.</div></details></section>`;
   return h;
 }
-
-/* one serving per past food, newest first: "Ham (2.5× 2 slices)" -> Ham, 2 slices, values ÷ 2.5 */
-function parseEntry(it){
-  const nm=String(it.n||"").trim();let name=nm,label="",qt=1,m;
-  if((m=nm.match(/^(.*?\S)\s*\((\d*\.?\d+)\s*×\s*(.+)\)$/))){name=m[1];qt=+m[2];label=m[3];}
-  else if((m=nm.match(/^(.*?\S)\s*\((.+?)\s*×\s*(\d*\.?\d+)\)$/))){name=m[1];label=m[2];qt=+m[3];}
-  else if((m=nm.match(/^(.*?\S)\s*\((.+)\)$/))){name=m[1];label=m[2];}
-  if(!(qt>0))qt=1;
-  const per=v=>v==null?null:Math.round(n(v)/qt*10)/10;
-  return {name,label:label||"1 serving",kcal:per(it.kcal),protein:per(it.p),carbs:it.c==null?null:per(it.c),fat:it.f==null?null:per(it.f)};
-}
-function recentServings(){
-  const map=new Map();let order=0;
-  sortedKeys().reverse().forEach(x=>(S.days[x].food||[]).slice().reverse().forEach(it=>{const r=parseEntry(it);const key=(r.name+"|"+r.label).toLowerCase();
-    const m=map.get(key);if(m){m.count++;}else map.set(key,{...r,key,count:1,order:order++});}));
-  return [...map.values()].sort((a,b)=>b.count-a.count||a.order-b.order);
-}
-S.quick={sel:{},more:false};
-function quickTotals(list){let k=0,p=0,c=0;Object.entries(S.quick.sel).forEach(([key,q])=>{const r=list.find(x=>x.key===key);if(r){k+=n(r.kcal)*q;p+=n(r.protein)*q;c++;}});return {k:Math.round(k),p:Math.round(p),c};}
-function vQuick(){
-  const list=recentServings();if(!list.length)return "";
-  const Q=S.quick,shown=Q.more?list.slice(0,30):list.slice(0,8),t=quickTotals(list);
-  return `<section class="card"><span class="label">Your usual foods</span>
-    <div class="ql">${shown.map(r=>{const on=Q.sel[r.key]!=null,q=on?Q.sel[r.key]:1;return `<div class="qr${on?" on":""}">
-      <button class="qcheck" data-act="qtog" data-key="${esc(r.key)}" aria-pressed="${on}" aria-label="Select ${esc(r.name)}"><span class="box">${on?"✓":""}</span><span class="qn"><b>${esc(r.name)}</b><small>${esc(r.label)}</small></span></button>
-      <div class="qty"><button data-act="qq" data-key="${esc(r.key)}" data-d="-0.5" aria-label="Less">−</button><span class="num">${qtxt(q)}</span><button data-act="qq" data-key="${esc(r.key)}" data-d="0.5" aria-label="More">+</button></div>
-    </div>`;}).join("")}</div>
-    ${list.length>8?`<button class="btn ghost small" data-act="qmore" style="align-self:flex-start">${Q.more?"Show fewer":"Show more ("+(Math.min(30,list.length)-8)+")"}</button>`:""}
-    <button class="btn qaddb" data-act="qadd" ${t.c?"":"disabled"}>${t.c?`Add ${t.c} to ${S.date===todayKey()?"today's meals":short(S.date)}<small>${t.k} kcal · ${t.p} g protein</small>`:"Tick foods to add"}</button>
-  </section>`;
-}
+document.addEventListener("click",ev=>{
+  const b=ev.target.closest('[data-act="padd"],[data-act="pdel"]');if(!b)return;
+  const k=S.date,d=ensure(k);d.prot=d.prot||[];
+  if(b.dataset.act==="padd"){const g=Math.round(n(b.dataset.p));if(!(g>0))return;d.prot.push({n:b.dataset.n,p:g,t:Date.now()});save(k);render();toast(`+${g} g protein`);}
+  else{d.prot.splice(+b.dataset.i,1);save(k);render();}
+});
+document.addEventListener("submit",ev=>{
+  const f=ev.target.closest('form[data-form="prot"]');if(!f)return;ev.preventDefault();ev.stopImmediatePropagation();
+  const nm=String(new FormData(f).get("n")||"").trim(),g=Math.round(n(new FormData(f).get("p")));
+  if(!nm||!(g>0)){toast("Enter what it was and the grams of protein.");return;}
+  const d=ensure(S.date);d.prot=d.prot||[];d.prot.push({n:nm.slice(0,60),p:g,t:Date.now()});save(S.date);document.activeElement?.blur();render();toast(`+${g} g protein`);
+},true);
 function lookChatUrl(q){q=(q||"").trim();return "https://claude.ai/new?q="+encodeURIComponent("Look up the real nutrition facts (package label, brand or retailer page, or USDA) for what I ate, calculate it for the amount I had, and add it to today's food in my fitness app ("+APP_URL+"). If I attach a photo, use it to identify the food and portion.\nWhat I ate: "+q+"\nAmount: ");}
 function q(x){return x.qty??1;}
 function qtxt(v){return (v%1?v.toFixed(1).replace(".0",""):String(v)).replace(/^0\./,".");}
@@ -1174,12 +1151,12 @@ function weightGuide(){
   const G=goal(),T=S.settings,w=weightTrend(),k=n(T.kcal);
   const ready=w.pts.length>=6&&w.span>=10;
   if(!ready){const first=addDays(G.since||todayKey(),14);
-    return {state:"wait",title:"Building your trend",text:`${w.pts.length} weigh-in${w.pts.length===1?"":"s"} in the last 3 weeks. Weigh in every morning after the bathroom, before eating. First calorie check ${first>todayKey()?"around "+fmt(first,{weekday:"short",month:"short",day:"numeric"}):"after a few more weigh-ins"}.`};}
+    return {state:"wait",title:"Building your trend",text:`${w.pts.length} weigh-in${w.pts.length===1?"":"s"} in the last 3 weeks. Weigh in a few mornings a week, after the bathroom and before eating. First trend check ${first>todayKey()?"around "+fmt(first,{weekday:"short",month:"short",day:"numeric"}):"after a few more weigh-ins"}.`};}
   const r=w.rate;let s,title,text,to=null;
-  if(r<-0.75){s="fast";to=k+150;title="Losing weight";text=`You're down ${r1(-r)} lb a week. To build muscle, eat a little more: add 150 a day.`;}
-  else if(r<-0.25){s="slow";to=k+100;title="Slowly losing";text=`Down ${r1(-r)} lb a week. Fine if you want to lean out a bit; for faster glute growth, add 100 a day.`;}
-  else if(r<=0.5){s="ok";title="On track";text=`Weight is steady (${r>0?"+":""}${r} lb a week): right for building muscle without gaining fat. Keep ${k} calories and hit your protein.`;}
-  else{s="slow";to=Math.max(G.floor,k-100);title="Gaining a bit fast";text=`Up ${r1(r)} lb a week. Some is muscle, but drop 100 a day to keep it lean.`;}
+  if(r<-0.75){s="fast";title="Losing weight";text=`You're down ${r1(-r)} lb a week. To build muscle, eat a bit more: add a snack or a bigger portion at a meal.`;}
+  else if(r<-0.25){s="slow";title="Slowly losing";text=`Down ${r1(-r)} lb a week. Fine if you want to lean out a little; for faster glute growth, eat a bit more.`;}
+  else if(r<=0.5){s="ok";title="On track";text=`Weight is steady (${r>0?"+":""}${r} lb a week): right for building muscle. Keep hitting your protein.`;}
+  else{s="slow";title="Gaining a bit fast";text=`Up ${r1(r)} lb a week. Some is muscle, but ease off snacks a little.`;}
   if(to===k)to=null;
   return {state:s,title,text,to,rate:w.rate};
 }
@@ -1224,13 +1201,13 @@ function weekVol(mon){return [...Array(7)].reduce((a,_,i)=>a+dayVol(addDays(mon,
 function vWeek(){
   const today=todayKey(),mon=addDays(monOf(today),-7*S.wkOff),wk=[...Array(7)].map((_,i)=>addDays(mon,i)),cur=S.wkOff===0;
   const trained=wk.filter(x=>S.days[x]?.exercises?.some(e=>e.sets?.length));
-  const fed=wk.filter(x=>x<=today&&S.days[x]?.food?.length);
-  const avg=f=>fed.length?Math.round(fed.reduce((a,x)=>a+S.days[x].food.reduce((b,it)=>b+n(it[f]),0),0)/fed.length):null;
+  const fed=wk.filter(x=>x<=today&&(S.days[x]?.prot?.length||S.days[x]?.food?.length));
+  const pavg=fed.length?Math.round(fed.reduce((a,x)=>a+protOf(x),0)/fed.length):null;
   const vol=weekVol(mon);
   return `<section class="card"><div class="cihead"><button class="icon sm" data-act="wkprev" aria-label="Previous week">‹</button><div><span class="label">${cur?"This week":"Week of"}</span><b>${cur?short(mon)+" – "+short(addDays(mon,6)):short(mon)+" – "+short(addDays(mon,6))}</b></div><button class="icon sm" data-act="wknext" aria-label="Next week" ${cur?"disabled":""}>›</button></div>
     <div class="week">${wk.map(x=>{const dd=new Date(x+"T12:00:00");const did=S.days[x]?.exercises?.some(e=>e.sets?.length);return `<div class="${did?"done":(cur&&plannedFor(x)!=="Rest"?"on":"")}"><b>${dd.toLocaleDateString("en-US",{weekday:"narrow"})}</b>${esc(did?(S.days[x].session||"✓"):(cur?(plannedFor(x)==="Rest"?"—":plannedFor(x)):"—")).replace("Glutes ","G")}</div>`}).join("")}</div>
     ${trained.length?`<div class="wklist">${trained.map(x=>`<div class="row"><span><b>${fmt(x,{weekday:"short"})}</b> ${esc(S.days[x].session||"Workout")}</span><span class="num">${dayVol(x).toLocaleString()} lb</span></div>`).join("")}</div>`:`<div class="note">${cur?"No lifts logged yet this week.":"No lifts logged that week."}</div>`}
-    <div class="stats"><div class="stat"><div class="v">${trained.length}<span style="font-size:20px;color:var(--muted)"> / ${ORDER.length}</span></div><div class="k">lifting days</div></div><div class="stat"><div class="v">${vol?Math.round(vol/100)/10+"k":"—"}</div><div class="k">lb lifted${cur?" so far":""}</div></div><div class="stat"><div class="v">${avg("kcal")??"—"}</div><div class="k">avg kcal · ${avg("p")??"—"} g protein</div></div></div>
+    <div class="stats"><div class="stat"><div class="v">${trained.length}<span style="font-size:20px;color:var(--muted)"> / ${ORDER.length}</span></div><div class="k">lifting days</div></div><div class="stat"><div class="v">${vol?Math.round(vol/100)/10+"k":"—"}</div><div class="k">lb lifted${cur?" so far":""}</div></div><div class="stat"><div class="v">${pavg??"—"}</div><div class="k">avg g protein a day</div></div></div>
   </section>`;
 }
 function vVolChart(){
@@ -1262,7 +1239,7 @@ function vProgress(){
   const sb=n(S.settings.startBw);
   const W=weightTrend(),Gd=weightGuide(),G=goal(),tbw=S.days[todayKey()]?.bw;
   const gcol={ok:"var(--good)",fast:"var(--warn)",slow:"var(--warn)",stall:"var(--danger)",wait:"var(--sc)"}[Gd.state];
-  h+=`<section class="card"><span class="label">Weight & calorie check</span>
+  h+=`<section class="card"><span class="label">Weight check</span>
     <div class="stats">
       <div class="stat"><div class="v">${sb||"—"}</div><div class="k">start${S.settings.startNote?" · "+esc(S.settings.startNote):""}</div></div>
       <div class="stat"><div class="v">${W.avg7??"—"}</div><div class="k">7-day average</div></div>
@@ -1271,7 +1248,7 @@ function vProgress(){
     ${bw.length>=2?spark(bw):""}
     <div class="guide" style="--g:${gcol}"><b>${esc(Gd.title)}</b><span>${esc(Gd.text)}</span>
       ${Gd.to?`<button class="btn" data-act="applykcal" data-k="${Gd.to}">Set calories to ${Gd.to}</button>`:""}</div>
-    <div class="note">Goal: build glute muscle while your weight stays about the same, on ${S.settings.kcal} calories and ${S.settings.protein} g protein. The rate uses all your weigh-ins from the last 3 weeks, so one heavy morning won't throw it off.</div>
+    <div class="note">Goal: build glute muscle while your weight stays about the same, with ${S.settings.protein} g of protein a day. The rate uses all your weigh-ins from the last 3 weeks, so one heavy morning won't throw it off.</div>
     <details><summary>Starting weight</summary><div class="meta" style="grid-template-columns:1fr 1fr;margin-top:10px">
       <label><span class="note">Start (lb)</span><input class="f" id="t-startBw" data-set="startBw" inputmode="decimal" value="${esc(S.settings.startBw??"")}"></label>
       <label><span class="note">When</span><input class="f" id="t-startNote" data-settext="startNote" value="${esc(S.settings.startNote??"")}" placeholder="e.g. mid-Sept"></label>
@@ -1309,6 +1286,11 @@ function vGuide(){
       <li>Fell a little short? Same weight, beat your reps. Way short? It drops the weight a bit so you can own it.</li>
       <li>Tap <b>Reps left</b> after each set (how many more you could have done). It makes the suggestions smarter: 3+ left means go heavier.</li>
       <li>First time on an exercise: pick a weight that leaves about 2 reps in the tank at the top of the range.</li></ul>`)
+  +card("Rest is part of the plan",`<ul class="big">
+      <li><b>Between sets:</b> rest 2–3 minutes on big lifts (hip thrust, split squat, RDL, leg press) and 60–90 seconds on smaller ones. The app's yellow <b>rest timer</b> starts after every set. Wait for it: rushing makes the next set weaker, and strong sets are what build muscle.</li>
+      <li><b>Between workouts:</b> keep at least one rest day between glute days. Muscle is built while you recover, not while you train. The app's weekly plan always keeps that rest day.</li>
+      <li><b>Sleep 7–8 hours.</b> It's when most of the repair happens. Short sleep slows results as much as skipping a workout.</li>
+      <li><b>Sore for more than 2–3 days,</b> or weights going down? Take an extra rest day. That's progress, not laziness.</li></ul>`,"#ffd60a")
   +card("How your program works",`<ul class="big">
       <li>Every workout starts with a big glute move while you're fresh.</li>
       <li>Three angles: hip thrusts and bridges build the most muscle; split squats, step-ups and RDLs work glutes stretched; abduction and kickbacks build the upper glute for a rounder shape.</li>
@@ -1317,7 +1299,7 @@ function vGuide(){
       <li>About 0.8 g for every pound you weigh${lb?` (you entered ${lb} lb)`:""}.</li>
       <li>Split it into <b>30–40 g at each of 3 meals</b>. After 50, muscles respond better to a solid dose than to small snacks.</li>
       <li>Easy 30 g: Greek yogurt + a scoop of protein powder · 4 oz chicken, fish or lean beef · a protein shake · 4 eggs or a cup of cottage cheese.</li>
-      <li>Eat about your usual amount. A big diet makes building muscle much harder.</li></ul>`,"#2dd4bf")
+      <li>No need to count calories: eat about your usual amount. Log protein in the <b>Protein</b> tab with one tap per meal.</li></ul>`,"#2dd4bf")
   +card("What to expect",`<table class="tl"><tbody>
       <tr><td>2–4 weeks</td><td>Stronger, weights going up every session</td></tr>
       <tr><td>6–8 weeks</td><td>Glutes feel firmer, clothes start to fit differently</td></tr>
@@ -1912,28 +1894,23 @@ async function initLocalPhotos(){
 function vSetup(){
   if(S.settings.setupDone)return "";
   return `<section class="card nextcard" style="--sc:#ff6fae"><span class="label">Welcome, Michelle</span>
-    <div class="note" style="color:var(--ink);font-size:18px">Let's set your daily food targets. Enter your height and weight:</div>
+    <div class="note" style="color:var(--ink);font-size:18px">Let's set your daily protein goal. Enter your weight:</div>
     <div class="meta" style="grid-template-columns:1fr 1fr">
-      <label><span class="note">Height (ft)</span><input class="f" id="su-ft" inputmode="numeric" placeholder="5"></label>
-      <label><span class="note">and inches</span><input class="f" id="su-in" inputmode="numeric" placeholder="5"></label>
-      <label><span class="note">Weight (lb)</span><input class="f" id="su-lb" inputmode="decimal" placeholder="140"></label>
-      <label><span class="note">Age</span><input class="f" id="su-age" inputmode="numeric" value="54"></label>
+      <label style="grid-column:1/-1"><span class="note">Weight (lb)</span><input class="f" id="su-lb" inputmode="decimal" placeholder="140"></label>
     </div>
-    <button class="btn" data-act="setup">Set my targets</button>
-    <button class="txtbtn" data-act="setupskip">Skip, I'll set them myself</button></section>`;
+    <button class="btn" data-act="setup">Set my protein goal</button>
+    <button class="txtbtn" data-act="setupskip">Skip, I'll set it myself</button></section>`;
 }
 document.addEventListener("click",ev=>{
   const b=ev.target.closest('[data-act="setup"],[data-act="setupskip"]');if(!b)return;
   if(b.dataset.act==="setupskip"){S.settings.setupDone=true;saveLocal();render();return;}
   const g=id=>n(document.getElementById(id)?.value);
-  const inch=g("su-ft")*12+g("su-in"),lb=g("su-lb"),age=g("su-age")||54;
-  if(inch<48||inch>84||lb<80||lb>400){toast("Enter your height and weight first.");return;}
-  // Mifflin-St Jeor (female) x 1.45 for 3 lifting days plus daily life; protein about 0.8 g per lb
-  const bmr=10*(lb*0.4536)+6.25*(inch*2.54)-5*age-161;
-  const kcal=Math.round(bmr*1.45/50)*50,protein=Math.round(lb*0.8/5)*5;
-  Object.assign(S.settings,{kcal,protein,maint:Math.round(bmr*1.45/10)*10,startBw:lb,startNote:short(todayKey()),setupDone:true,targetSince:todayKey()});
+  const lb=g("su-lb");
+  if(lb<80||lb>400){toast("Enter your weight first.");return;}
+  const protein=Math.round(lb*0.8/5)*5;   // about 0.8 g per lb of body weight
+  Object.assign(S.settings,{protein,startBw:lb,startNote:short(todayKey()),setupDone:true,targetSince:todayKey()});
   const d=ensure(todayKey());if(!d.bw)d.bw=lb;
-  saveLocal();render();toast(`Targets set: ${kcal} kcal, ${protein} g protein`);
+  saveLocal();render();toast(`Protein goal: ${protein} g a day`);
 });
 
 /* ---------- boot ---------- */
