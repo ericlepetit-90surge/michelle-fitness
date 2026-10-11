@@ -125,6 +125,11 @@ nav.tabs button[aria-current="true"]{color:var(--sc);background:color-mix(in srg
 .target.up b{color:var(--good)}
 .target.down{border-color:color-mix(in srgb,var(--warn) 50%, var(--line))}
 .target.down b{color:var(--warn)}
+.welcome{gap:14px;font-size:19px;line-height:1.45}.welcome h2{margin:0;font-size:28px}.welcome p{margin:0}.wbig{font-size:21px;font-weight:600}
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.wgrid label{display:flex;flex-direction:column;gap:4px}
+.wlist{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:10px}
+.wdots{display:flex;gap:6px}.wdots span{width:28px;height:6px;border-radius:3px;background:var(--line)}.wdots span.on{background:var(--sc)}
+.wweek{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.wweek div{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 4px;border-radius:14px;border:1.5px solid color-mix(in srgb,var(--sc) 50%,var(--line));font-size:16px;font-weight:600}.wweek span{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--sc);color:var(--on-sc);font-size:18px}
 .nextcard{border-color:color-mix(in srgb,var(--sc) 45%, var(--line));background:linear-gradient(160deg,color-mix(in srgb,var(--sc) 22%, var(--raise)),var(--surface) 60%)}
 .nt{display:block;color:var(--muted);font-size:15px;font-weight:400;margin-top:2px}
 .coachnote{background:color-mix(in srgb,var(--ink) 6%, transparent);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;font-size:17px}
@@ -1480,6 +1485,8 @@ function render(){
   document.querySelector(".datebar").hidden=(S.tab==="program"||S.tab==="progress"||S.tab==="coach"||S.tab==="next");
   const app=document.getElementById("app");
   if(S.mode==="loading"){app.innerHTML=`<div class="card empty">Loading your log…</div>`;return;}
+  if(!S.settings.introDone&&!S.settings.setupDone){document.querySelector("nav")&&(document.querySelector("nav").hidden=true);app.innerHTML=vWelcome();return;}
+  document.querySelector("nav")&&(document.querySelector("nav").hidden=false);
   app.innerHTML=({today:vToday,next:vNext,food:vFood,progress:vProgress,program:vProgram,coach:vCoach})[S.tab]();tick();
 }
 function isTyping(){const a=document.activeElement;return !!a&&((a.tagName==="INPUT"&&a.type!=="file")||a.tagName==="SELECT"||a.tagName==="TEXTAREA")&&document.getElementById("app").contains(a);}
@@ -1893,26 +1900,61 @@ async function initLocalPhotos(){
 }
 
 /* ---------- first-run targets from height and weight ---------- */
-function vSetup(){
-  if(S.settings.setupDone)return "";
-  return `<section class="card nextcard" style="--sc:#ff6fae"><span class="label">Welcome, Michelle</span>
-    <div class="note" style="color:var(--ink);font-size:18px">Let's set your daily protein goal. Enter your weight:</div>
-    <div class="meta" style="grid-template-columns:1fr 1fr">
-      <label style="grid-column:1/-1"><span class="note">Weight (lb)</span><input class="f" id="su-lb" inputmode="decimal" placeholder="140"></label>
+S.wstep=1;
+const DAYN=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+function vSetup(){return "";}
+function vWelcome(){
+  const st=S.settings,step=S.wstep,dots=`<div class="wdots">${[1,2,3].map(i=>`<span class="${i<=step?"on":""}"></span>`).join("")}</div>`;
+  if(step===1)return `<section class="card nextcard welcome" style="--sc:#ff6fae">${dots}
+    <h2>Welcome, Michelle 💪</h2>
+    <p>This app is your coach in your pocket. It tells you what to do at the gym, and how much weight to use, every time.</p>
+    <p>Two quick questions so it fits you:</p>
+    <div class="wgrid">
+      <label><span class="note">Height (feet)</span><input class="f" id="su-ft" inputmode="numeric" placeholder="5" value="${st.heightIn?Math.floor(st.heightIn/12):""}"></label>
+      <label><span class="note">(inches)</span><input class="f" id="su-in" inputmode="numeric" placeholder="5" value="${st.heightIn?st.heightIn%12:""}"></label>
+      <label style="grid-column:1/-1"><span class="note">Weight (lb)</span><input class="f" id="su-lb" inputmode="decimal" placeholder="140" value="${st.startBw||""}"></label>
     </div>
-    <button class="btn" data-act="setup">Set my protein goal</button>
-    <button class="txtbtn" data-act="setupskip">Skip, I'll set it myself</button></section>`;
+    <button class="btn" data-act="setup">Next</button></section>`;
+  if(step===2)return `<section class="card nextcard welcome" style="--sc:#b69cff">${dots}
+    <h2>How it works</h2>
+    <ul class="wlist">
+      <li><b>Next</b> shows your next workout and the exact weight to use for each exercise.</li>
+      <li><b>Lift</b> is where you work out. At the gym, tap <b>Start</b> on the Next tab, then after each set enter your reps and weight and tap <b>Add set</b>. A rest timer starts on its own.</li>
+      <li>Not sure about a machine? Tap <b>▶ How-to video</b> or <b>Form</b> on that exercise.</li>
+      <li><b>Protein</b>: tap to add what you eat. Your goal is <b>${st.protein||100} g a day</b>. That's what builds muscle.</li>
+      <li><b>Plan</b> has your full plan and tips, any time.</li>
+    </ul>
+    <p class="note">Everything saves on your phone automatically.</p>
+    <div class="row2b"><button class="btn ghost" data-act="wback">Back</button><button class="btn" data-act="wnext">Next</button></div></section>`;
+  const days=Object.keys(WEEK).map(Number).sort().map(d=>DAYN[d]);
+  return `<section class="card nextcard welcome" style="--sc:#2dd4bf">${dots}
+    <h2>Your first week</h2>
+    <p class="wbig">You don't need to know everything. You just need to show up 3 times.</p>
+    <ul class="wlist">
+      <li><b>Week 1 is for learning.</b> Pick weights that feel comfortable. The app moves you up from there, so you don't have to guess.</li>
+      <li><b>Everyone starts somewhere.</b> Nobody at the gym is watching what weight you use, and staff are happy to show you a machine.</li>
+      <li><b>A little sore the next day is normal.</b> It means it's working, and it gets much better by week 2.</li>
+      <li><b>Each workout you log makes the next one smarter.</b></li>
+    </ul>
+    <div class="wweek">${days.map((d,i)=>`<div><span>${i+1}</span>${d}</div>`).join("")}</div>
+    <p class="note">${days.join(", ")} is the plan, but any 3 days with a rest day in between works.</p>
+    <p class="wbig">Three workouts. That's the whole goal this week. You've got this. 💪</p>
+    <div class="row2b"><button class="btn ghost" data-act="wback">Back</button><button class="btn" data-act="wdone">Show my first workout</button></div></section>`;
 }
 document.addEventListener("click",ev=>{
-  const b=ev.target.closest('[data-act="setup"],[data-act="setupskip"]');if(!b)return;
-  if(b.dataset.act==="setupskip"){S.settings.setupDone=true;saveLocal();render();return;}
+  const b=ev.target.closest('[data-act="setup"],[data-act="wnext"],[data-act="wback"],[data-act="wdone"]');if(!b)return;
+  const a=b.dataset.act;
+  if(a==="wback"){S.wstep=Math.max(1,S.wstep-1);render();window.scrollTo(0,0);return;}
+  if(a==="wnext"){S.wstep=3;render();window.scrollTo(0,0);return;}
+  if(a==="wdone"){S.settings.setupDone=true;S.settings.introDone=true;saveLocal();S.tab="next";render();window.scrollTo(0,0);return;}
   const g=id=>n(document.getElementById(id)?.value);
-  const lb=g("su-lb");
+  const lb=g("su-lb"),ft=g("su-ft"),inch=g("su-in");
   if(lb<80||lb>400){toast("Enter your weight first.");return;}
   const protein=Math.round(lb*0.8/5)*5;   // about 0.8 g per lb of body weight
-  Object.assign(S.settings,{protein,startBw:lb,startNote:short(todayKey()),setupDone:true,targetSince:todayKey()});
-  const d=ensure(todayKey());if(!d.bw)d.bw=lb;
-  saveLocal();render();toast(`Protein goal: ${protein} g a day`);
+  Object.assign(S.settings,{protein,startBw:lb,startNote:short(todayKey()),targetSince:todayKey()});
+  if(ft>=4&&ft<=7)S.settings.heightIn=ft*12+Math.min(11,Math.max(0,inch));
+  const d=ensure(todayKey());d.bw=lb;
+  saveLocal();S.wstep=2;render();window.scrollTo(0,0);
 });
 
 /* ---------- boot ---------- */
