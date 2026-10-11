@@ -128,6 +128,7 @@ nav.tabs button[aria-current="true"]{color:var(--sc);background:color-mix(in srg
 .welcome{gap:14px;font-size:19px;line-height:1.45}.welcome h2{margin:0;font-size:28px}.welcome p{margin:0}.wbig{font-size:21px;font-weight:600}
 .wgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.wgrid label{display:flex;flex-direction:column;gap:4px}
 .wsteps{margin:0;padding-left:24px;display:flex;flex-direction:column;gap:12px;font-size:18px;line-height:1.45}.wnote{font-size:17px;line-height:1.45;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--sc) 12%,var(--sunk))}
+.wtabs{display:flex;flex-direction:column;gap:14px}.wtabs>div{display:flex;flex-direction:column;gap:6px}.wtabs p{margin:0}.wtab{align-self:flex-start;font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.06em;padding:5px 12px;border-radius:999px;background:color-mix(in srgb,var(--sc) 25%,var(--raise));color:var(--ink)}
 .wlist{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:10px}
 .wdots{display:flex;gap:6px}.wdots span{width:28px;height:6px;border-radius:3px;background:var(--line)}.wdots span.on{background:var(--sc)}
 .wweek{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.wweek div{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 4px;border-radius:14px;border:1.5px solid color-mix(in srgb,var(--sc) 50%,var(--line));font-size:16px;font-weight:600}.wweek span{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--sc);color:var(--on-sc);font-size:18px}
@@ -1926,13 +1927,14 @@ function vWelcome(){
     <button class="btn" data-act="setup">Next</button></section>`;
   if(step===2)return `<section class="card nextcard welcome" style="--sc:#b69cff">${dots}
     <h2>How it works</h2>
-    <ul class="wlist">
-      <li><b>Next</b> shows your next workout and the exact weight to use for each exercise.</li>
-      <li><b>Lift</b> is where you work out. At the gym, tap <b>Start</b> on the Next tab, then after each set enter your reps and weight and tap <b>Add set</b>. A rest timer starts on its own.</li>
-      <li>Not sure about a machine? Tap <b>▶ How-to video</b> or <b>Form</b> on that exercise.</li>
-      <li><b>Protein</b>: tap to add what you eat. Your goal is <b>${st.protein||100} g a day</b>. That's what builds muscle.</li>
-      <li><b>Plan</b> has your full plan and tips, any time.</li>
-    </ul>
+    <p>The app has 5 tabs at the bottom of the screen:</p>
+    <div class="wtabs">
+      <div><span class="wtab">Next</span><p><b>Start here.</b> It shows your next workout, every exercise, and the exact weight to use. As you get stronger, it raises your weights for you. At the gym, tap <b>Start</b>.</p></div>
+      <div><span class="wtab">Lift</span><p>Your workout at the gym. After each set, enter your reps and weight and tap <b>Add set</b>. A rest timer starts on its own. Not sure about a machine? Tap <b>▶ How-to video</b> or <b>Form</b>.</p></div>
+      <div><span class="wtab">Protein</span><p>Muscle is built from protein, so logging what you eat is the best way to make sure your glutes have what they need to grow. <b>Aim for ${st.protein||100} g a day.</b> Tap a food to add it; it takes seconds.</p></div>
+      <div><span class="wtab">Stats</span><p>Your weight, progress photos, and how much stronger you're getting.</p></div>
+      <div><span class="wtab">Plan</span><p>Your full plan and tips, any time you want to reread them.</p></div>
+    </div>
     <p class="note">Everything saves on your phone automatically.</p>
     <div class="row2b"><button class="btn ghost" data-act="wback">Back</button><button class="btn" data-act="wnext">Next</button></div></section>`;
   if(step===3)return `<section class="card nextcard welcome" style="--sc:#ff6fae">${dots}
