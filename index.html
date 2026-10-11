@@ -573,7 +573,7 @@ function toast(t){const el=document.getElementById("toast");el.textContent=t;el.
 function topReps(plan){const m=String(plan||"").match(/(\d+)\s*$/);return m?+m[1]:null;}
 
 /* ---------- storage ---------- */
-function loadLocal(){try{const j=JSON.parse(localStorage.getItem("gymlog")||"null");if(j){S.days=j.days||{};S.foods=j.foods||{};S.exo=j.exo||{};Object.assign(S.settings,j.settings||{});}}catch(e){}}
+function loadLocal(){try{const j=JSON.parse(localStorage.getItem("gymlog")||"null");if(j){S.days=j.days||{};S.foods=j.foods||{};S.exo=j.exo||{};Object.assign(S.settings,j.settings||{});}}catch(e){}if(S.forceWelcome){S.settings.introDone=false;S.wstep=1;}}
 function saveLocal(){try{localStorage.setItem("gymlog",JSON.stringify({days:S.days,settings:S.settings,foods:S.foods,exo:S.exo||{}}));}catch(e){}}
 function save(k){
   if(S.mode!=="cloud"){saveLocal();return;}
@@ -1285,7 +1285,7 @@ function vProgress(){
 function vGuide(){
   const pr=n(S.settings.protein)||110,lb=n(S.settings.startBw)||null;
   const card=(title,body,c)=>`<section class="card prog guide2"${c?` style="--sc:${c}"`:""}><h3 style="color:var(--sc)">${title}</h3>${body}</section>`;
-  return card("Your 3 rules",`<ol class="big">
+  return `<button class="btn ghost" data-act="wreplay" style="width:100%">Show the welcome again</button>`+card("Your 3 rules",`<ol class="big">
       <li><b>Lift heavy.</b> Pick a weight where the last 2 reps of every set are hard, but your form stays clean. If you could easily do 3 or more extra reps, it's too light. Light "toning" weights won't build your glutes.</li>
       <li><b>Show up 3 times a week, every week.</b> Missed workouts slow results more than anything else. Short and done beats perfect and skipped.</li>
       <li><b>Keep adding weight.</b> Muscle grows when you ask it to do a bit more than last time: one more rep, or a little more weight.</li></ol>`,"#ff6fae")
@@ -1958,8 +1958,9 @@ function vWelcome(){
     <div class="row2b"><button class="btn ghost" data-act="wback">Back</button><button class="btn" data-act="wdone">Show my first workout</button></div></section>`;
 }
 document.addEventListener("click",ev=>{
-  const b=ev.target.closest('[data-act="setup"],[data-act="wnext"],[data-act="wback"],[data-act="wdone"]');if(!b)return;
+  const b=ev.target.closest('[data-act="setup"],[data-act="wreplay"],[data-act="wnext"],[data-act="wback"],[data-act="wdone"]');if(!b)return;
   const a=b.dataset.act;
+  if(a==="wreplay"){S.settings.introDone=false;S.wstep=1;saveLocal();render();window.scrollTo(0,0);return;}
   if(a==="wback"){S.wstep=Math.max(1,S.wstep-1);render();window.scrollTo(0,0);return;}
   if(a==="wnext"){S.wstep=Math.min(4,S.wstep+1);render();window.scrollTo(0,0);return;}
   if(a==="wdone"){S.settings.setupDone=true;S.settings.introDone=true;saveLocal();S.tab="next";render();window.scrollTo(0,0);return;}
@@ -1974,6 +1975,7 @@ document.addEventListener("click",ev=>{
 });
 
 /* ---------- boot ---------- */
+if(/[?&]welcome\b/.test(location.search)){S.forceWelcome=true;S.settings.introDone=false;S.wstep=1;try{history.replaceState(null,"",location.pathname);}catch(e){}}
 render();
 (async()=>{S.photoAvail="checking";
   try{const sm=window.claude&&window.claude.use?await window.claude.use("sample"):null;
