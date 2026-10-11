@@ -209,6 +209,7 @@ textarea.f:focus{border-color:var(--sc);outline:none;box-shadow:0 0 0 3px color-
 .tipline{display:flex;flex-direction:column;gap:4px;text-align:left;background:color-mix(in srgb,var(--sc) 10%,transparent);border:0;border-radius:12px;padding:10px 12px;color:var(--ink);font-size:17px;cursor:pointer}
 .tipline small{font-size:16px;color:var(--muted)}
 .cue{font-size:16px;color:var(--sc);font-weight:600}
+.mach svg{display:block;background:color-mix(in srgb,var(--sc) 6%,var(--bg));border-radius:12px}.mlbl{font:600 13px -apple-system,sans-serif;fill:var(--ink)}:root{--mf:#c9d2e3;--mfill:#2a3448}
 .formp{display:flex;flex-direction:column;gap:10px;border:1px solid var(--line);background:var(--sunk);border-radius:14px;padding:14px;font-size:17px}
 .formp ul,.formp ol{margin:2px 0 0;padding-left:22px}.formp li{margin:3px 0}
 .formp.edit label{display:flex;flex-direction:column;gap:4px;font-size:15px;color:var(--muted)}
@@ -757,8 +758,9 @@ function exCard(e,i,k,locked,act){
     ${e.swapOf?`<div class="note">Swapped from ${esc(e.swapOf)}${!sets.length&&!locked?` · <button class="txtbtn" data-act="unswap" data-i="${i}">Back to ${esc(e.swapOf)}</button>`:""}</div>`:""}
     ${e.pick&&!sets.length&&!locked?`<div class="chips">${e.pick.map(p=>`<button class="chip" data-act="pickex" data-i="${i}" data-n="${esc(p)}" aria-pressed="${p===e.name}">${esc(p)}</button>`).join("")}</div>`:""}
     ${info.tip?`<button class="tipline" data-act="tiptog" data-i="${i}"><span>💡 ${esc(info.tip)}</span>${S.ui.tip[i]&&info.why?`<small>${esc(info.why)}</small>`:""}</button>`:""}
-    <div class="exbtns"><button data-act="formtog" data-i="${i}" aria-pressed="${!!S.ui.form[i]}">Form</button>${locked?"":`<button data-act="swaptog" data-i="${i}" aria-pressed="${!!S.ui.swap[i]}">Swap</button>`}<a href="${esc(videoFor(e.name))}" target="_blank" rel="noopener">▶ Video</a>${locked?"":`<button data-act="bwtog" data-n="${esc(e.name)}" aria-pressed="${bw}">${bw?"✓ Bodyweight":"Bodyweight"}</button>`}</div>
-    ${!prev&&!sets.length&&!locked&&exInfo(e.name).setup&&!S.ui.form[i]?`<button class="txtbtn" data-act="formtog" data-i="${i}">First time? Tap here for how to set it up</button>`:""}
+    <div class="exbtns"><button data-act="formtog" data-i="${i}" aria-pressed="${!!S.ui.form[i]}">Form</button>${locked?"":`<button data-act="swaptog" data-i="${i}" aria-pressed="${!!S.ui.swap[i]}">Swap</button>`}${MACHINE_OF[e.name]?`<button data-act="machtog" data-i="${i}" aria-pressed="${!!S.ui.mach?.[i]}">Machine</button>`:""}<a href="${esc(videoFor(e.name))}" target="_blank" rel="noopener">▶ Video</a>${locked?"":`<button data-act="bwtog" data-n="${esc(e.name)}" aria-pressed="${bw}">${bw?"✓ Bodyweight":"Bodyweight"}</button>`}</div>
+    ${!prev&&!sets.length&&!locked&&exInfo(e.name).setup&&!S.ui.form[i]?`<button class="txtbtn" data-act="formtog" data-i="${i}">First time? Tap here to see the machine and how to set it up</button>`:""}
+    ${S.ui.mach?.[i]&&!S.ui.form[i]?vMachine(e.name):""}
     ${S.ui.form[i]?vForm(e.name,i):""}
     ${S.ui.swap[i]?vSwap(e,i):""}
     ${e.note?`<div class="note">${esc(e.note)}</div>`:""}
@@ -783,6 +785,61 @@ function exCard(e,i,k,locked,act){
   }
   return h+`</section>`;
 }
+/* ---------- machine drawings (original line art) ---------- */
+const MX={F:'stroke="var(--mf)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"',
+  A:'stroke="var(--sc)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"',
+  P:'fill="color-mix(in srgb,var(--sc) 35%,transparent)" stroke="var(--sc)" stroke-width="3" stroke-linejoin="round"',
+  S:'fill="var(--mfill)" stroke="var(--mf)" stroke-width="2"'};
+const lbl=(x,y,t,x2,y2,anchor)=>`<line x1="${x}" y1="${y}" x2="${x2}" y2="${y2}" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="3 3"/><circle cx="${x2}" cy="${y2}" r="3" fill="var(--muted)"/><text x="${x}" y="${y-4}" text-anchor="${anchor||"middle"}" class="mlbl">${t}</text>`;
+const stack=(x,y,h)=>`<rect x="${x}" y="${y}" width="34" height="${h}" rx="3" ${MX.S}/>${[...Array(Math.floor(h/10))].map((_,i)=>`<line x1="${x}" y1="${y+10+i*10}" x2="${x+34}" y2="${y+10+i*10}" stroke="var(--mf)" stroke-width="1"/>`).join("")}<circle cx="${x+30}" cy="${y+h-25}" r="3" fill="var(--sc)"/>`;
+const floor=`<line x1="10" y1="186" x2="310" y2="186" stroke="var(--line)" stroke-width="3"/>`;
+const db=(x,y,s=1)=>`<g transform="translate(${x} ${y}) scale(${s})"><rect x="-22" y="-9" width="9" height="18" rx="2" ${MX.S}/><rect x="13" y="-9" width="9" height="18" rx="2" ${MX.S}/><line x1="-13" y1="0" x2="13" y2="0" ${MX.F}/></g>`;
+const MACHINES={
+ hipmachine:{name:"Hip thrust machine",look:"A low machine you sit on the floor in front of, with a padded backrest behind you and a padded belt or bar that rests across your hips.",
+  svg:`${floor}<path d="M40 186 L40 150 L280 150 L280 186" ${MX.F}/><rect x="52" y="96" width="26" height="54" rx="8" ${MX.P}/><path d="M60 150 L60 120" ${MX.F}/><rect x="190" y="138" width="80" height="12" rx="3" ${MX.F}/><path d="M118 118 C138 96 172 96 190 118" ${MX.A}/><rect x="112" y="114" width="16" height="16" rx="4" ${MX.P}/><rect x="182" y="114" width="16" height="16" rx="4" ${MX.P}/><path d="M118 130 L104 150 M190 130 L206 150" ${MX.F}/>`+lbl(70,70,"back pad",62,98)+lbl(160,70,"hip pad / belt",156,100)+lbl(255,118,"feet here",232,138)},
+ smith:{name:"Smith machine",look:"A tall rack where the bar runs up and down on two steel rails. Twist the bar to hook or unhook it. Pull a bench lengthwise inside for hip thrusts.",
+  svg:`${floor}<path d="M70 186 V22 M250 186 V22 M60 22 H260" ${MX.F}/><path d="M40 90 H280" ${MX.A}/><rect x="40" y="76" width="12" height="28" rx="3" ${MX.P}/><rect x="268" y="76" width="12" height="28" rx="3" ${MX.P}/><path d="M78 90 l8 -10 M242 90 l-8 -10" ${MX.F}/><rect x="96" y="150" width="128" height="12" rx="4" ${MX.F}/><path d="M110 162 V186 M210 162 V186" ${MX.F}/><path d="M62 136 H82 M238 136 H258" stroke="var(--warn)" stroke-width="5" stroke-linecap="round"/>`+lbl(160,58,"bar on rails: twist to unhook",160,88)+lbl(36,128,"safety stops",68,136,"start")+lbl(160,132,"bench inside",160,150)},
+ barbell:{name:"Barbell + bench",look:"A flat bench (or one against a wall) and a loaded barbell with a foam pad on it.",
+  svg:`${floor}<rect x="30" y="118" width="120" height="14" rx="4" ${MX.F}/><path d="M44 132 V186 M136 132 V186" ${MX.F}/><path d="M150 150 H300" ${MX.A}/><rect x="168" y="112" width="18" height="76" rx="4" ${MX.S}/><rect x="270" y="112" width="18" height="76" rx="4" ${MX.S}/><rect x="212" y="140" width="34" height="20" rx="9" ${MX.P}/>`+lbl(90,96,"bench (upper back here)",90,118)+lbl(230,96,"bar pad",229,140)},
+ dumbbells:{name:"Dumbbells",look:"Hand weights on the dumbbell rack. The weight is printed on each end.",
+  svg:`${floor}<path d="M40 186 V120 H280 V186 M40 150 H280" ${MX.F}/>${[70,120,170,220,262].map((x,i)=>db(x,108,0.9+i*0.06)).join("")}${[70,120,170,220].map((x,i)=>db(x,140,1.1+i*0.08)).join("")}`+lbl(160,60,"pick a pair from the rack",160,98)},
+ cablekick:{name:"Cable machine + ankle strap",look:"A tall cable tower with a weight stack. Slide the pulley to the bottom and clip an ankle strap (a padded cuff) to the cable.",
+  svg:`${floor}<path d="M60 186 V20 H120 V186" ${MX.F}/>${stack(73,40,110)}<path d="M150 186 V20" ${MX.F}/><circle cx="150" cy="168" r="8" ${MX.P}/><path d="M156 170 C190 172 210 168 232 162" ${MX.A}/><rect x="228" y="148" width="40" height="22" rx="10" ${MX.P}/>`+lbl(96,14,"weight stack: move the pin",100,124)+lbl(206,98,"pulley at the bottom",152,164)+lbl(262,126,"ankle strap",250,148)},
+ cablerope:{name:"Cable machine + rope",look:"A cable tower with the pulley slid to the bottom and a rope handle clipped on.",
+  svg:`${floor}<path d="M60 186 V20 H120 V186" ${MX.F}/>${stack(73,40,110)}<path d="M150 186 V20" ${MX.F}/><circle cx="150" cy="168" r="8" ${MX.P}/><path d="M156 170 L222 150" ${MX.A}/><path d="M222 150 C232 140 240 136 252 138 M222 150 C232 156 240 164 252 166" ${MX.A}/><circle cx="254" cy="138" r="5" ${MX.P}/><circle cx="254" cy="166" r="5" ${MX.P}/>`+lbl(206,98,"pulley at the bottom",152,164)+lbl(300,122,"rope",256,136,"end")},
+ abduction:{name:"Hip abduction machine",look:"A seat with a backrest and two padded arms against the outside of your knees. You push your knees OUT. (The inner-thigh version pushes IN.)",
+  svg:`${floor}<rect x="120" y="120" width="90" height="16" rx="6" ${MX.F}/><rect x="112" y="56" width="16" height="70" rx="6" ${MX.F}/><path d="M165 136 V186" ${MX.F}/><rect x="214" y="104" width="16" height="44" rx="6" ${MX.P}/><rect x="244" y="104" width="16" height="44" rx="6" ${MX.P}/><path d="M232 126 H244 M236 120 l8 6 -8 6" stroke="var(--sc)" stroke-width="3" fill="none"/>${stack(30,50,110)}`+lbl(304,76,"pads on outside of knees",252,104,"end")+lbl(140,40,"backrest",120,60)},
+ pulldown:{name:"Lat pulldown",look:"A seat with a thigh pad, a tall frame, and a long bar hanging from a high cable.",
+  svg:`${floor}<path d="M220 186 V16 H150" ${MX.F}/>${stack(232,40,110)}<path d="M150 16 V60" ${MX.A}/><path d="M86 62 H214" ${MX.A}/><path d="M86 62 l-8 8 M214 62 l8 8" ${MX.A}/><rect x="120" y="150" width="70" height="12" rx="4" ${MX.F}/><path d="M155 162 V186" ${MX.F}/><rect x="124" y="116" width="62" height="12" rx="6" ${MX.P}/>`+lbl(70,40,"long bar",100,62,"start")+lbl(70,110,"thigh pad",124,122,"start")+lbl(108,176,"seat",130,156,"start")},
+ cablerow:{name:"Seated cable row",look:"A long low bench with foot plates at the end and a cable coming out low from the weight stack. Usually a V-shaped handle.",
+  svg:`${floor}${stack(262,46,110)}<path d="M256 186 V30 H300 V186" ${MX.F}/><rect x="40" y="150" width="150" height="12" rx="4" ${MX.F}/><path d="M60 162 V186 M170 162 V186" ${MX.F}/><path d="M200 120 V160" stroke="var(--mf)" stroke-width="6" stroke-linecap="round"/><path d="M256 134 L170 134" ${MX.A}/><path d="M170 134 l-14 -10 M170 134 l-14 10" ${MX.A}/>`+lbl(90,110,"sit here",100,150)+lbl(214,86,"foot plates",201,124)+lbl(150,100,"V-handle",162,130)},
+ legpress:{name:"Leg press",look:"A big reclined seat and a heavy foot plate on angled rails. Release it with the safety handles on the sides.",
+  svg:`${floor}<path d="M30 186 L30 160 L270 40 L300 40" ${MX.F}/><path d="M40 176 L280 56" ${MX.F}/><rect x="40" y="128" width="54" height="14" rx="5" transform="rotate(-25 67 135)" ${MX.F}/><rect x="40" y="96" width="14" height="40" rx="5" ${MX.F}/><rect x="200" y="58" width="18" height="56" rx="4" transform="rotate(-27 209 86)" ${MX.P}/><path d="M232 74 L252 64" ${MX.F}/><rect x="244" y="44" width="16" height="44" rx="4" transform="rotate(-27 252 66)" ${MX.S}/><path d="M110 120 l14 -12" stroke="var(--warn)" stroke-width="5" stroke-linecap="round"/>`+lbl(150,34,"foot plate: feet high and wide",204,72)+lbl(100,176,"safety handles",116,116,"start")+lbl(30,80,"seat",46,104,"start")},
+ backext:{name:"45° back extension",look:"An angled bench with a padded rest for your hips at the top and foot plate with pads at the bottom.",
+  svg:`${floor}<path d="M60 186 L120 70 M180 186 L120 70" ${MX.F}/><path d="M80 186 L170 186" ${MX.F}/><rect x="104" y="58" width="56" height="18" rx="8" transform="rotate(40 132 67)" ${MX.P}/><path d="M164 150 L210 150" ${MX.F}/><circle cx="214" cy="140" r="9" ${MX.P}/><rect x="196" y="152" width="40" height="8" rx="3" ${MX.F}/>`+lbl(210,40,"hip pad (top edge below hip bones)",146,66,"middle")+lbl(258,120,"heels under here",222,140,"middle")},
+ chestpress:{name:"Chest press machine",look:"A seat with an upright back pad and two handles at chest height that you push forward.",
+  svg:`${floor}<rect x="110" y="132" width="70" height="14" rx="5" ${MX.F}/><path d="M145 146 V186" ${MX.F}/><rect x="96" y="58" width="16" height="78" rx="6" ${MX.F}/><path d="M60 40 V186" ${MX.F}/>${stack(18,50,110)}<path d="M112 100 H200" ${MX.A}/><rect x="198" y="88" width="10" height="26" rx="4" ${MX.P}/><path d="M150 30 L150 60 L112 70" ${MX.F}/>`+lbl(304,66,"handles at mid-chest",206,94,"end")+lbl(196,176,"seat height pin",170,146,"start")},
+ bench:{name:"Flat bench",look:"A plain padded bench. For split squats, stand in front of it and put one foot back on it.",
+  svg:`${floor}<rect x="70" y="118" width="180" height="16" rx="6" ${MX.P}/><path d="M90 134 V186 M230 134 V186 M80 186 H100 M220 186 H240" ${MX.F}/>${db(150,176,1.1)}`+lbl(160,90,"back foot rests here",160,118)},
+ box:{name:"Step-up box",look:"A sturdy box or low bench about knee height. Many gyms have stackable plyo boxes.",
+  svg:`${floor}<path d="M90 186 V110 H230 V186 M90 110 L120 90 H260 L230 110 M260 90 V166 L230 186" ${MX.F}/><rect x="96" y="106" width="130" height="8" rx="3" ${MX.P}/>${db(56,176,1)}`+lbl(160,60,"about knee height",160,96)},
+ mat:{name:"Floor mat",look:"Any exercise mat in the stretching area.",
+  svg:`${floor}<path d="M40 176 L250 176 L280 160 L70 160 Z" ${MX.P}/><path d="M250 176 C262 176 266 186 256 186 L40 186" ${MX.F}/>`+lbl(160,120,"mat on the floor",160,166)},
+ treadmill:{name:"Treadmill",look:"Walk on a treadmill and raise the incline with the arrow buttons. Clip the safety key to your clothes.",
+  svg:`${floor}<path d="M40 176 L230 176 L262 150" ${MX.F}/><path d="M50 170 L226 170" ${MX.P}/><path d="M232 172 V60 M262 150 V60 M220 60 H274" ${MX.F}/><rect x="218" y="44" width="58" height="20" rx="5" ${MX.P}/>`+lbl(120,40,"incline + speed buttons",222,52,"middle")+lbl(110,140,"belt",120,168)},
+ adjbench:{name:"Adjustable bench + dumbbells",look:"A bench whose back can be raised. Set it upright (last notch before straight) for seated presses.",
+  svg:`${floor}<rect x="110" y="128" width="70" height="14" rx="5" ${MX.F}/><path d="M120 142 V186 M170 142 V186" ${MX.F}/><rect x="96" y="46" width="16" height="90" rx="6" transform="rotate(-8 104 91)" ${MX.P}/>${db(210,124,1)}${db(250,176,1)}`+lbl(60,40,"back raised almost upright",100,56,"start")}
+};
+const MACHINE_OF={"Hip thrust machine":"hipmachine","Smith hip thrust":"smith","Hip thrust":"barbell","Romanian deadlift":"dumbbells","Cable kickback":"cablekick","Hip abduction machine":"abduction","Lat pulldown":"pulldown","Plank":"mat","Bulgarian split squat":"bench","Leg press":"legpress","45° back extension":"backext","Seated cable row":"cablerow","Seated DB shoulder press":"adjbench","Step-up":"box","Cable pull-through":"cablerope","Chest press machine":"chestpress","Incline walk":"treadmill"};
+const imgSearch=q=>"https://www.google.com/search?tbm=isch&q="+encodeURIComponent(q+" gym");
+function vMachine(name){
+  const m=MACHINES[MACHINE_OF[name]];if(!m)return `<div class="formp"><div class="note">No picture for this one yet.</div><a class="txtbtn" href="${imgSearch(name)}" target="_blank" rel="noopener">See real photos →</a></div>`;
+  return `<div class="formp mach"><span class="label">What to look for · ${esc(m.name)}</span>
+    <svg viewBox="0 0 320 200" width="100%" role="img" aria-label="Drawing of a ${esc(m.name)}">${m.svg}</svg>
+    <div>${esc(m.look)}</div>
+    <a class="txtbtn" href="${imgSearch(m.name)}" target="_blank" rel="noopener">See real photos of a ${esc(m.name.toLowerCase())} →</a></div>`;
+}
+
 function vForm(name,i){
   const info=exInfo(name),ed=S.editEx===name;
   if(ed){const v=x=>esc(Array.isArray(x)?x.join("\n"):(x??""));
@@ -797,9 +854,9 @@ function vForm(name,i){
       <label>Rest (seconds)<input class="f" id="fe-rest" inputmode="numeric" value="${v(info.rest)}"></label>
       <div class="row2b"><button class="btn" data-act="formsave" data-n="${esc(name)}">Save</button><button class="btn ghost" data-act="formcancel">Cancel</button></div></div>`;}
   const has=info.grip||info.path||info.growth?.length;
-  if(!has)return `<div class="formp"><div class="note">No form tips for this exercise yet.</div><button class="btn ghost small" data-act="formedit" data-n="${esc(name)}">Add tips</button></div>`;
+  if(!has)return `${vMachine(name)}<div class="formp"><div class="note">No form tips for this exercise yet.</div><button class="btn ghost small" data-act="formedit" data-n="${esc(name)}">Add tips</button></div>`;
   const li=a=>(a||[]).map(x=>`<li>${esc(x)}</li>`).join("");
-  return `<div class="formp">
+  return `${vMachine(name)}<div class="formp">
     ${info.setup?.length?`<div><span class="label">Set it up</span><ol>${li(info.setup)}</ol></div>`:""}
     ${info.grip?`<div><span class="label">Grip</span><div>${esc(info.grip)}</div></div>`:""}
     ${info.path?`<div><span class="label">Direction</span><div>${esc(info.path)}</div></div>`:""}
@@ -1315,7 +1372,7 @@ function vGuide(){
       <li>Start with 3 days. After 6–8 weeks, if you recover well and want more, add a <b>light</b> day, not a 4th heavy glute day.</li>
       <li>For example: upper body plus 2–3 sets of abduction and kickbacks. Ask your coach for a 4-day version and paste it into <b>Your program</b> below.</li></ul>`)
   +card("Your first visits to Crunch",`<ul class="big">
-      <li><b>Every exercise has help.</b> Tap <b>Form</b> for setup steps, grip and movement, and <b>▶ Video</b> to watch it done.</li>
+      <li><b>Every exercise has help.</b> Tap <b>Form</b> for setup steps, grip and movement, and <b>▶ Video</b> to watch it done. Not sure which machine it is? Tap <b>Machine</b> for a drawing of what to look for.</li>
       <li><b>Weight stacks:</b> pull the pin out and push it into the hole next to the weight you want. The number is on each plate.</li>
       <li><b>Cables:</b> slide the pulley up or down to the height the exercise says, and clip on the handle (rope, bar, or ankle strap) with the carabiner.</li>
       <li><b>Smith machine:</b> the bar runs on rails. Twist it to unhook and re-hook. Always set the safety stops just below your lowest point first.</li>
@@ -1624,6 +1681,7 @@ document.addEventListener("click",ev=>{
     case "tag":{const ent=S.entry[i]||(S.entry[i]={rir:null,tags:[]});const t=b.dataset.t;ent.tags=ent.tags.includes(t)?ent.tags.filter(x=>x!==t):[...ent.tags,t];render();break;}
     case "moretags":S.ui.more[i]=!S.ui.more[i];render();break;
     case "tiptog":S.ui.tip[i]=!S.ui.tip[i];render();break;
+    case "machtog":(S.ui.mach||(S.ui.mach={}))[i]=!S.ui.mach[i];render();break;
     case "formtog":S.ui.form[i]=!S.ui.form[i];S.editEx=null;render();break;
     case "swaptog":S.ui.swap[i]=!S.ui.swap[i];render();break;
     case "formedit":S.editEx=b.dataset.n;render();break;
