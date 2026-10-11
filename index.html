@@ -130,6 +130,7 @@ nav.tabs button[aria-current="true"]{color:var(--sc);background:color-mix(in srg
 .wsteps{margin:0;padding-left:24px;display:flex;flex-direction:column;gap:12px;font-size:18px;line-height:1.45}.wnote{font-size:17px;line-height:1.45;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--sc) 12%,var(--sunk))}
 .wtabs{display:flex;flex-direction:column;gap:14px}.wtabs>div{display:flex;flex-direction:column;gap:6px}.wtabs p{margin:0}.wtab{align-self:flex-start;font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.06em;padding:5px 12px;border-radius:999px;background:color-mix(in srgb,var(--sc) 25%,var(--raise));color:var(--ink)}
 .coachbtn{width:100%;background:color-mix(in srgb,#2dd4bf 85%,white);box-shadow:0 8px 22px -10px #2dd4bf}
+.wmini{margin:6px 0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
 .wlist{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:10px}
 .wdots{display:flex;gap:6px}.wdots span{width:28px;height:6px;border-radius:3px;background:var(--line)}.wdots span.on{background:var(--sc)}
 .wweek{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.wweek div{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 4px;border-radius:14px;border:1.5px solid color-mix(in srgb,var(--sc) 50%,var(--line));font-size:16px;font-weight:600}.wweek span{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--sc);color:var(--on-sc);font-size:18px}
@@ -1972,6 +1973,15 @@ const GROW_HTML=`<ol class="wsteps">
   <li><b>Repeat: stack it up.</b> One workout changes nothing you can see. Each one adds a tiny bit, and 3 a week for months adds up to a real change. Showing up beats any perfect workout: an OK workout still counts, and if you miss a day, just do the next one.</li>
   <li><b>Then add weight.</b> As you get stronger, the old weight stops being a challenge, so the signal stops. That's why the app keeps moving your weights up.</li></ol>
   <div class="wnote"><b>Why glutes need you to push:</b> they're the biggest, strongest muscle in your body, so they need real weight to be challenged, often more than you'd expect. Hip thrusts and leg press are where you can go heaviest, so push those hardest.</div>
+  <div class="wnote"><b>It's not just your glutes.</b> The program builds your whole body:
+    <ul class="wmini">
+      <li><b>Thighs and calves:</b> leg press, split squats, step-ups and deadlifts.</li>
+      <li><b>Back and posture:</b> lat pulldown, rows and back extensions. You'll stand taller.</li>
+      <li><b>Shoulders and arms:</b> shoulder press, chest press and pulldowns.</li>
+      <li><b>Abs and core:</b> planks, plus every standing exercise works them.</li>
+      <li><b>Heart:</b> the incline walk.</li>
+    </ul>
+    And strength training brings stronger bones, better balance, and everyday life made easier: stairs, carrying groceries, getting up off the floor.</div>
   <div class="wnote"><b>Timeline:</b> weeks 1–4 you get stronger fast (your brain is learning to use the muscle). Around 6–8 weeks they start to feel firmer, and by 3 months you'll see it in photos. Muscle responds at any age; it just needs the push and the consistency.</div>`;
 function vSetup(){return "";}
 function vWelcome(){
