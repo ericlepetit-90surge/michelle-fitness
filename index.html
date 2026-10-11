@@ -129,6 +129,7 @@ nav.tabs button[aria-current="true"]{color:var(--sc);background:color-mix(in srg
 .wgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.wgrid label{display:flex;flex-direction:column;gap:4px}
 .wsteps{margin:0;padding-left:24px;display:flex;flex-direction:column;gap:12px;font-size:18px;line-height:1.45}.wnote{font-size:17px;line-height:1.45;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--sc) 12%,var(--sunk))}
 .wtabs{display:flex;flex-direction:column;gap:14px}.wtabs>div{display:flex;flex-direction:column;gap:6px}.wtabs p{margin:0}.wtab{align-self:flex-start;font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.06em;padding:5px 12px;border-radius:999px;background:color-mix(in srgb,var(--sc) 25%,var(--raise));color:var(--ink)}
+.coachbtn{width:100%;background:color-mix(in srgb,#2dd4bf 85%,white);box-shadow:0 8px 22px -10px #2dd4bf}
 .wlist{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:10px}
 .wdots{display:flex;gap:6px}.wdots span{width:28px;height:6px;border-radius:3px;background:var(--line)}.wdots span.on{background:var(--sc)}
 .wweek{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.wweek div{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 4px;border-radius:14px;border:1.5px solid color-mix(in srgb,var(--sc) 50%,var(--line));font-size:16px;font-weight:600}.wweek span{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--sc);color:var(--on-sc);font-size:18px}
@@ -924,7 +925,7 @@ function vNext(){
       <a class="txtbtn" href="${esc(videoFor(r.name))}" target="_blank" rel="noopener">▶ Watch how to use it</a>
     </div>`).join("")}</div>
     <button class="btn" data-act="gonext" data-d="${nx.date}" data-s="${esc(nx.sess)}">Start ${esc(nx.sess)}${nx.date===todayKey()?"":" on "+short(nx.date)}</button>
-  </section>`+vWeekPlan();
+  </section>`+vBackupNudge()+vCoach2('next')+vWeekPlan();
 }
 
 /* ---------- Food tab: daily check-in ---------- */
@@ -1342,7 +1343,7 @@ function vGuide(){
 }
 function vProgram(){
   const days=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],map=[1,2,3,4,5,6,0];
-  let h=vGuide();
+  let h=vCoach2('plan')+vGuide();
   h+=`<section class="card prog"><span class="label">Weekly split · ${ORDER.length} days</span><ul>${map.map((d,i)=>`<li><b>${days[i]}</b>: ${esc(WEEK[d]||"Off: walk 20–30 min if you can")}</li>`).join("")}</ul></section>`;
   Object.entries(PROGRAM).forEach(([name,p])=>{
     h+=`<section class="card prog" style="--sc:${SC[name]}"><div class="row"><h3 style="color:var(--sc)">${esc(name)}</h3><span class="note">${esc(p.focus||"")}</span></div><ul>${p.ex.map(([e,pl,note,pick])=>`<li>${esc(pick?pick.join(" or "):e)} <span>${esc(pl)}</span>${note?` <span>(${esc(note)})</span>`:""}</li>`).join("")}</ul></section>`;
@@ -1853,11 +1854,71 @@ document.addEventListener("click",async ev=>{
     catch(e){P.open=true;P.text=t;P.preview=null;render();toast("Copy it from the box below");}}
 });
 
+
+/* ---------- Ask my coach (her Claude project) ---------- */
+S.coach={open:false,q:"",urlEdit:false};
+function coachSummary(q){
+  const st=S.settings,ks=sortedKeys().filter(k=>k<=todayKey()).slice(-21);
+  const lines=["Hi coach! Here is my question and my latest info from my app.","","MY QUESTION:",q||"(no question, just checking in: how am I doing and what should I focus on?)",""];
+  lines.push("ABOUT ME: Michelle, 54."+(st.heightIn?` Height ${Math.floor(st.heightIn/12)}'${st.heightIn%12}".`:"")+(st.startBw?` Starting weight ${st.startBw} lb.`:"")+` Protein goal ${st.protein} g/day. Goal: build glute muscle, 3 workouts a week.`);
+  const bw=ks.filter(k=>n(S.days[k].bw)>0);if(bw.length)lines.push(`Latest weight: ${S.days[bw.at(-1)].bw} lb (${short(bw.at(-1))}).`);
+  const pk=ks.filter(k=>protOf(k)>0);if(pk.length)lines.push(`Protein, last ${pk.length} logged days: average ${Math.round(pk.reduce((a,k)=>a+protOf(k),0)/pk.length)} g/day.`);
+  lines.push("","WORKOUTS (last 3 weeks):");
+  const wk=ks.filter(k=>(S.days[k].exercises||[]).some(e=>e.sets?.length));
+  if(!wk.length)lines.push("(none logged yet)");
+  wk.forEach(k=>{const d=S.days[k];lines.push(`${fmt(k)}: ${d.session||"Workout"}`);
+    d.exercises.filter(e=>e.sets?.length).forEach(e=>lines.push(`  ${e.name}: ${e.sets.map(x=>setTxt(x)).join(", ")}`));});
+  lines.push("","MY CURRENT PROGRAM:",programToText());
+  lines.push("","(If you change my program, please give me the full new PROGRAM block so I can paste it into my app.)");
+  return lines.join("\n");
+}
+function vCoach2(where){
+  const C=S.coach,url=S.settings.coachUrl;
+  if(!C.open)return `<button class="btn coachbtn" data-act="coachopen">💬 Ask my coach a question</button>`;
+  return `<section class="card nextcard" style="--sc:#2dd4bf"><div class="row"><span class="label">Ask my coach</span><button class="link" data-act="coachclose" aria-label="Close">✕</button></div>
+    <label><span class="note" style="color:var(--ink);font-size:17px">Type your question:</span>
+    <textarea class="f" id="coachq" rows="4" placeholder="e.g. My knees hurt on the leg press. What should I do?">${esc(C.q)}</textarea></label>
+    <button class="btn" data-act="coachgo">Copy and open my coach</button>
+    ${C.fallback?`<div class="note" style="color:var(--warn)">Copy didn't work automatically. Press and hold in the box below, Select All, Copy, then paste it in Claude.</div><textarea class="f" rows="6" readonly>${esc(C.fallback)}</textarea>`:""}
+    <ol class="wsteps" style="font-size:17px">
+      <li>Tap the button above. Your question <b>and your recent workouts</b> are copied, and your coach opens in Claude.</li>
+      <li>In Claude, tap the message box, then <b>Paste</b>, then send.</li>
+      <li>If the coach gives you a new program, copy it, come back here, and paste it in <b>Plan → Update my program</b>.</li></ol>
+    ${C.urlEdit||!url?`<label><span class="note">Your coach link (open your coach project in Claude, copy the address, and paste it here)</span>
+      <input class="f" id="coachurl" placeholder="https://claude.ai/project/..." value="${esc(url||"")}"></label>
+      <button class="btn ghost small" data-act="coachurlsave">Save coach link</button>`
+     :`<button class="txtbtn" data-act="coachurledit">Change coach link</button>`}
+  </section>`;
+}
+document.addEventListener("input",ev=>{if(ev.target.id==="coachq")S.coach.q=ev.target.value;});
+document.addEventListener("click",async ev=>{
+  const b=ev.target.closest('[data-act^="coach"]');if(!b)return;const a=b.dataset.act,C=S.coach;
+  if(a==="coachopen"){C.open=true;render();setTimeout(()=>document.getElementById("coachq")?.focus(),50);}
+  else if(a==="coachclose"){C.open=false;render();}
+  else if(a==="coachurledit"){C.urlEdit=true;render();}
+  else if(a==="coachurlsave"){let u=(document.getElementById("coachurl")?.value||"").trim();
+    if(u&&!/^https:\/\/(www\.)?claude\.ai\//.test(u)){toast("That should start with https://claude.ai/");return;}
+    S.settings.coachUrl=u;C.urlEdit=false;saveLocal();render();toast(u?"Coach link saved":"Coach link cleared");}
+  else if(a==="coachgo"){const t=coachSummary(C.q.trim());let ok=false;
+    try{await navigator.clipboard.writeText(t);ok=true;}catch(e){}
+    if(!ok){C.fallback=t;render();toast("Couldn't copy automatically");}
+    else{toast("Copied! Now paste it in Claude.");C.q="";C.fallback="";C.open=false;render();}
+    window.open(S.settings.coachUrl||"https://claude.ai/new","_blank","noopener");}
+});
+
 /* ---------- backup / restore (data lives only on this phone) ---------- */
+function vBackupNudge(){
+  const st=S.settings,has=sortedKeys().some(k=>(S.days[k].exercises||[]).some(e=>e.sets?.length));
+  if(!has)return "";const last=st.lastBackup,age=last?Math.round((new Date(todayKey())-new Date(last))/864e5):999;
+  if(age<7)return "";
+  return `<section class="card" style="border-color:var(--warn)"><span class="label" style="color:var(--warn)">Protect your progress</span>
+    <div style="font-size:18px">${last?`Your last backup was ${age} days ago.`:"You haven't backed up yet."} It takes 10 seconds: tap below and choose <b>Save to Files</b> (iCloud Drive), or text it to yourself.</div>
+    <button class="btn" data-act="backup">Back up now</button></section>`;
+}
 function vBackup(){
   const last=S.settings.lastBackup;
   return `<section class="card"><span class="label">Backup</span>
-    <div class="note" style="color:var(--ink)">Your log is saved only on this phone. Save a backup every week or two, for example to Files or iCloud Drive, so you never lose it.</div>
+    <div class="note" style="color:var(--ink)">Your log is saved only on this phone. Back up once a week to <b>Files → iCloud Drive</b> so you never lose it. On a new phone, open the app and tap Restore. (Progress photos aren't in the backup, so keep the originals in your Photos app.)</div>
     ${last?`<div class="note">Last backup: ${fmt(last)}</div>`:`<div class="note" style="color:var(--warn)">No backup yet.</div>`}
     <button class="btn" data-act="backup">Save a backup file</button>
     <label class="btn ghost" for="restorefile" style="text-align:center">Restore from a backup file</label><input type="file" id="restorefile" accept="application/json,.json" class="hidefile">
@@ -1934,6 +1995,7 @@ function vWelcome(){
       <div><span class="wtab">Protein</span><p>Muscle is built from protein, so logging what you eat is the best way to make sure your glutes have what they need to grow. <b>Aim for ${st.protein||100} g a day.</b> Tap a food to add it; it takes seconds.</p></div>
       <div><span class="wtab">Stats</span><p>Your weight, progress photos, and how much stronger you're getting.</p></div>
       <div><span class="wtab">Plan</span><p>Your full plan and tips, any time you want to reread them.</p></div>
+      <div><span class="wtab">💬 Coach</span><p>Have a question? On the Next or Plan tab, tap <b>Ask my coach a question</b>. It sends your question and your workouts to your coach in Claude.</p></div>
     </div>
     <p class="note">Everything saves on your phone automatically.</p>
     <div class="row2b"><button class="btn ghost" data-act="wback">Back</button><button class="btn" data-act="wnext">Next</button></div></section>`;
@@ -1975,6 +2037,7 @@ document.addEventListener("click",ev=>{
 });
 
 /* ---------- boot ---------- */
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist();}catch(e){}
 if(/[?&]welcome\b/.test(location.search)){S.forceWelcome=true;S.settings.introDone=false;S.wstep=1;try{history.replaceState(null,"",location.pathname);}catch(e){}}
 render();
 (async()=>{S.photoAvail="checking";
