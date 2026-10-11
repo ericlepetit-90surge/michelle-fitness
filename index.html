@@ -1981,9 +1981,9 @@ function vWelcome(){
     <p>This app is your coach in your pocket. It tells you what to do at the gym, and how much weight to use, every time.</p>
     <p>Two quick questions so it fits you:</p>
     <div class="wgrid">
-      <label><span class="note">Height (feet)</span><input class="f" id="su-ft" inputmode="numeric" placeholder="5" value="${st.heightIn?Math.floor(st.heightIn/12):""}"></label>
-      <label><span class="note">(inches)</span><input class="f" id="su-in" inputmode="numeric" placeholder="5" value="${st.heightIn?st.heightIn%12:""}"></label>
-      <label style="grid-column:1/-1"><span class="note">Weight (lb)</span><input class="f" id="su-lb" inputmode="decimal" placeholder="140" value="${st.startBw||""}"></label>
+      <label><span class="note">Height (feet)</span><input class="f" id="su-ft" inputmode="numeric"></label>
+      <label><span class="note">(inches)</span><input class="f" id="su-in" inputmode="numeric"></label>
+      <label style="grid-column:1/-1"><span class="note">Weight (lb)</span><input class="f" id="su-lb" inputmode="decimal"></label>
     </div>
     <button class="btn" data-act="setup">Next</button></section>`;
   if(step===2)return `<section class="card nextcard welcome" style="--sc:#b69cff">${dots}
