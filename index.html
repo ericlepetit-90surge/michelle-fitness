@@ -1485,7 +1485,7 @@ function render(){
   document.querySelector(".datebar").hidden=(S.tab==="program"||S.tab==="progress"||S.tab==="coach"||S.tab==="next");
   const app=document.getElementById("app");
   if(S.mode==="loading"){app.innerHTML=`<div class="card empty">Loading your log…</div>`;return;}
-  if(!S.settings.introDone&&!S.settings.setupDone){document.querySelector("nav")&&(document.querySelector("nav").hidden=true);app.innerHTML=vWelcome();return;}
+  if(!S.settings.introDone){document.querySelector("nav")&&(document.querySelector("nav").hidden=true);app.innerHTML=vWelcome();return;}
   document.querySelector("nav")&&(document.querySelector("nav").hidden=false);
   app.innerHTML=({today:vToday,next:vNext,food:vFood,progress:vProgress,program:vProgram,coach:vCoach})[S.tab]();tick();
 }
