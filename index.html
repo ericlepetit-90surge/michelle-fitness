@@ -107,7 +107,7 @@ svg text{fill:var(--muted);font:13px var(--mono)}
 .week div b{display:block;font:700 18px var(--display);text-transform:uppercase;color:var(--ink)}
 .week div.on{border-color:color-mix(in srgb,var(--sc) 50%, var(--line))}
 .week div.done{background:color-mix(in srgb,var(--good) 20%, var(--sunk));border-color:var(--good);color:var(--ink)}
-nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:color-mix(in srgb,var(--surface) 80%, transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;padding:8px 6px calc(10px + env(safe-area-inset-bottom,0px))}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:color-mix(in srgb,var(--surface) 80%, transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--line);display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,.9fr) minmax(0,1.15fr) minmax(0,1.3fr) minmax(0,.85fr);gap:2px;padding:8px 6px calc(10px + env(safe-area-inset-bottom,0px))}
 nav.tabs button{background:none;border:0;border-radius:14px;padding:12px 0;font:700 16px var(--display);text-transform:uppercase;letter-spacing:.01em;color:var(--muted);cursor:pointer}
 nav.tabs button[aria-current="true"]{color:var(--sc);background:color-mix(in srgb,var(--sc) 16%, transparent)}
 .toast{position:fixed;left:50%;bottom:calc(100px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:14px;font-size:17px;font-weight:500;z-index:9;max-width:90vw}
@@ -721,6 +721,16 @@ document.addEventListener("submit",ev=>{const f=ev.target;if(f.dataset?.form!=="
   S.settings.playlists=[...(S.settings.playlists||[]),{n:nm||"Playlist "+((S.settings.playlists||[]).length+1),u}];saveSettings();render();["stn","stu"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});toast("Playlist added");});
 
 
+/* ---------- Progress: strength first vs latest ---------- */
+function vStrength(){
+  const by={};sortedKeys().forEach(k=>(S.days[k].exercises||[]).forEach(e=>{const ws=(e.sets||[]).filter(x=>n(x.w)>0&&!x.bw);if(!ws.length)return;const b=ws.reduce((a,x)=>e1rm(n(x.w),n(x.r))>e1rm(n(a.w),n(a.r))?x:a,ws[0]);(by[e.name]=by[e.name]||[]).push({k,s:b,v:e1rm(n(b.w),n(b.r))});}));
+  const str=Object.entries(by).sort((a,b)=>b[1].at(-1).k.localeCompare(a[1].at(-1).k)).slice(0,12);
+  if(!str.length)return "";
+  return `<section class="card"><span class="label">Getting stronger · first vs latest</span><div class="wklist">${str.map(([nm,a])=>{const f=a[0],l=a.at(-1),d=Math.round(l.v-f.v);
+      return `<div class="row" style="flex-direction:column;align-items:stretch;gap:2px"><span style="display:flex;justify-content:space-between;gap:8px"><b>${esc(nm)}</b>${a.length>1?`<b style="color:${d>0?"var(--good)":d<0?"var(--warn)":"var(--muted)"}">${d>0?"+":""}${d} lb</b>`:`<span class="note">first time</span>`}</span><span class="note">${a.length>1?`${esc(setTxt({r:f.s.r,w:f.s.w}))} (${short(f.k)}) → ${esc(setTxt({r:l.s.r,w:l.s.w}))} (${short(l.k)})`:`${esc(setTxt({r:l.s.r,w:l.s.w}))} on ${short(l.k)}`}</span></div>`;}).join("")}</div>
+      <div class="note">Strength from your best set each time. Going up means your muscles are growing.</div></section>`;
+}
+
 /* ---------- progression (double progression + reps in reserve) ---------- */
 function target(e,beforeKey){
   const P=parsePlan(e.plan); if(!P) return null;
@@ -1272,7 +1282,7 @@ function vVolChart(){
 }
 function vProgress(){
   const ks=sortedKeys(), today=todayKey();
-  let h=vCheckin()+vWeek()+vVolChart();
+  let h=vCheckin()+vStrength()+vWeek()+vVolChart();
   const bw=ks.filter(k=>n(S.days[k].bw)>0).map(k=>({k,y:n(S.days[k].bw)}));
   const sb=n(S.settings.startBw);
   const W=weightTrend(),Gd=weightGuide(),G=goal(),tbw=S.days[todayKey()]?.bw;
