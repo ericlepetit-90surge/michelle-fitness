@@ -274,6 +274,7 @@ input.f.mini{width:80px;display:inline-block;padding:8px;font-size:18px;text-ali
 .bigstat b{font:700 44px/1 var(--display);color:var(--sc)}.bigstat{font-size:18px;color:var(--muted)}
 table.tl td{font-size:17px;padding:9px 4px;vertical-align:top}table.tl td:first-child{white-space:nowrap;font-weight:700;color:var(--sc);padding-right:12px}
 .sesspick{display:flex;flex-direction:column;gap:8px}.sesspick select.f{font-size:22px;font-weight:600}
+.stlist{display:flex;flex-direction:column;gap:8px}.strow{display:flex;align-items:center;gap:6px}.stbtn{flex:1;display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;background:color-mix(in srgb,#1db954 18%,var(--sunk));border:1px solid color-mix(in srgb,#1db954 45%,var(--line));color:var(--ink);text-decoration:none;font-size:19px;font-weight:600;min-width:0;overflow-wrap:anywhere}.stbtn span{color:#1db954;font-size:18px}
 .nxlist{display:flex;flex-direction:column}
 .nxrow{display:flex;flex-direction:column;gap:4px;padding:14px 0;border-bottom:1px solid var(--line)}.nxrow:last-child{border-bottom:0}
 .nxtop{display:flex;align-items:center;justify-content:space-between;gap:10px}.nxtop b{font-size:20px;line-height:1.25}
@@ -698,6 +699,28 @@ function mmss(sec){sec=Math.max(0,Math.round(sec));const h=Math.floor(sec/3600),
 /* backrest angles for bench exercises */
 const BENCH={"Seated DB shoulder press":"80–90° (upright, one notch below straight up), back fully on the pad","Hip thrust":"flat bench, edge just below your shoulder blades (mid-back), no angle","Smith hip thrust":"flat bench placed lengthwise, edge just below your shoulder blades (mid-back)","Bulgarian split squat":"flat bench behind you, about knee height; top of the back foot on it","Step-up":"a flat bench or box about knee height (lower is fine at first)","Glute bridge machine":"set the back pad so it sits just below your shoulder blades"};
 
+/* ---------- soundtrack: her Spotify playlists (saved on this phone) ---------- */
+S.st={edit:false};
+function spUrl(u){u=String(u||"").trim();let m=u.match(/^spotify:(playlist|album|artist|track):([A-Za-z0-9]+)/);if(m)return `https://open.spotify.com/${m[1]}/${m[2]}`;
+  m=u.match(/^https:\/\/open\.spotify\.com\/(?:intl-[a-z]+\/)?(playlist|album|artist|track)\/([A-Za-z0-9]+)/);return m?`https://open.spotify.com/${m[1]}/${m[2]}`:null;}
+function vSoundtrack(){
+  const L=S.settings.playlists||[],E=S.st.edit;
+  if(!L.length&&!E)return `<button class="btn ghost" data-act="stedit" style="width:100%">🎧 Add your Spotify playlists</button>`;
+  return `<section class="card st"><div class="row" style="align-items:center"><span class="label">🎧 Soundtrack</span><button class="txtbtn" data-act="stedit">${E?"Done":"Edit"}</button></div>
+    <div class="stlist">${L.map((p,i)=>`<div class="strow"><a class="stbtn" href="${esc(p.u)}" target="_blank" rel="noopener"><span>▶</span>${esc(p.n)}</a>${E?`<button class="link" data-act="stdel" data-i="${i}" aria-label="Remove ${esc(p.n)}">✕</button>`:""}</div>`).join("")}</div>
+    ${E?`<div class="note" style="color:var(--ink)">In Spotify, open a playlist, tap ⋯ → Share → <b>Copy link</b>, then paste it here.</div>
+      <form class="fadd" data-form="playlist"><input class="f" id="stn" placeholder="Name, e.g. Heavy day" autocomplete="off"><input class="f" id="stu" placeholder="Paste Spotify link" autocomplete="off" style="grid-column:1/-1"><button class="btn" type="submit">Add playlist</button></form>`:""}
+  </section>`;
+}
+document.addEventListener("click",ev=>{const b=ev.target.closest('[data-act="stedit"],[data-act="stdel"]');if(!b)return;
+  if(b.dataset.act==="stedit"){S.st.edit=!S.st.edit;render();return;}
+  const L=[...(S.settings.playlists||[])];L.splice(+b.dataset.i,1);S.settings.playlists=L;saveSettings();render();});
+document.addEventListener("submit",ev=>{const f=ev.target;if(f.dataset?.form!=="playlist")return;ev.preventDefault();
+  const u=spUrl(document.getElementById("stu").value),nm=document.getElementById("stn").value.trim();
+  if(!u){toast("Paste a Spotify playlist link");return;}
+  S.settings.playlists=[...(S.settings.playlists||[]),{n:nm||"Playlist "+((S.settings.playlists||[]).length+1),u}];saveSettings();render();["stn","stu"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});toast("Playlist added");});
+
+
 /* ---------- progression (double progression + reps in reserve) ---------- */
 function target(e,beforeKey){
   const P=parsePlan(e.plan); if(!P) return null;
@@ -884,7 +907,7 @@ function vToday(){
   const k=S.date, d=day(k), planned=plannedFor(k);
   const cur=d&&d.session, ex=d?.exercises||[], hasSets=ex.some(e=>e.sets?.length);
   const locked=hasSets&&!S.reopen[k]&&(d.done||k<todayKey());
-  let h=vSetup()+(k===todayKey()?vCoachNote():"");
+  let h=vSetup()+(k===todayKey()?vCoachNote()+vSoundtrack():"");
   if(d?.done&&hasSets)h+=vRecap(k);
   if(locked){
     h+=`<section class="card"><div class="row" style="align-items:center"><span><span class="badge">Done</span> <b style="font-size:20px">${esc(cur||"Workout")}</b>${duration(d)!=null?` <span class="note">· ${duration(d)} min</span>`:""}</span><button class="btn ghost small" data-act="reopen">Edit</button></div></section>`;
