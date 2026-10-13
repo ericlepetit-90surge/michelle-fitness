@@ -125,7 +125,7 @@ nav.tabs button[aria-current="true"]{color:var(--sc);background:color-mix(in srg
 .target.up b{color:var(--good)}
 .target.down{border-color:color-mix(in srgb,var(--warn) 50%, var(--line))}
 .target.down b{color:var(--warn)}
-.welcome{gap:14px;font-size:19px;line-height:1.45}.welcome h2{margin:0;font-size:28px}.welcome p{margin:0}.wbig{font-size:21px;font-weight:600}
+.welcome{overflow-wrap:anywhere;gap:14px;font-size:19px;line-height:1.45}.welcome h2{margin:0;font-size:28px}.welcome p{margin:0}.wbig{font-size:21px;font-weight:600}
 .wgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.wgrid label{display:flex;flex-direction:column;gap:4px}
 .wsteps{margin:0;padding-left:24px;display:flex;flex-direction:column;gap:12px;font-size:18px;line-height:1.45}.wnote{font-size:17px;line-height:1.45;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--sc) 12%,var(--sunk))}
 .wtabs{display:flex;flex-direction:column;gap:14px}.wtabs>div{display:flex;flex-direction:column;gap:6px}.wtabs p{margin:0}.wtab{align-self:flex-start;font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.06em;padding:5px 12px;border-radius:999px;background:color-mix(in srgb,var(--sc) 25%,var(--raise));color:var(--ink)}
@@ -227,7 +227,7 @@ textarea.f.sm{min-height:70px;font-size:17px}
 .add2{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:end}
 .add2 label{display:flex;flex-direction:column;gap:4px;min-width:0}.add2 label span{font-size:14px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.08em}
 .add2 .x{color:var(--muted);font-size:22px;padding-bottom:14px}
-.rirrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.rirrow .label{margin-right:4px}
+.rirrow{display:flex;flex-direction:column;align-items:flex-start;gap:8px}.rirbtns{display:flex;gap:8px;flex-wrap:wrap}.rir{min-width:56px}
 .rir{min-width:48px;height:44px;border-radius:12px;border:1.5px solid var(--line);background:var(--sunk);color:var(--ink);font:600 18px var(--mono);cursor:pointer}
 .rir[aria-pressed="true"]{background:var(--sc);color:var(--on-sc);border-color:var(--sc)}
 .chip.sm{padding:8px 12px;font-size:15px}.chip.ghost{--c:var(--muted)}
@@ -273,6 +273,7 @@ input.f.mini{width:80px;display:inline-block;padding:8px;font-size:18px;text-ali
 .guide2 ul.big,.guide2 ol.big{margin:0;padding-left:22px;font-size:18px;line-height:1.5}.guide2 li{margin:6px 0}
 .bigstat b{font:700 44px/1 var(--display);color:var(--sc)}.bigstat{font-size:18px;color:var(--muted)}
 table.tl td{font-size:17px;padding:9px 4px;vertical-align:top}table.tl td:first-child{white-space:nowrap;font-weight:700;color:var(--sc);padding-right:12px}
+.sesspick{display:flex;flex-direction:column;gap:8px}.sesspick select.f{font-size:22px;font-weight:600}
 .nxlist{display:flex;flex-direction:column}
 .nxrow{display:flex;flex-direction:column;gap:4px;padding:14px 0;border-bottom:1px solid var(--line)}.nxrow:last-child{border-bottom:0}
 .nxtop{display:flex;align-items:center;justify-content:space-between;gap:10px}.nxtop b{font-size:20px;line-height:1.25}
@@ -694,6 +695,9 @@ function allDone(d){const ex=(d.exercises||[]).filter(e=>e.name!=="Incline walk"
 function duration(d){if(d?.dur!=null)return n(d.dur);if(!d?.start)return null;return Math.max(0,Math.round(((d.end||Date.now())-d.start)/60000));}
 function mmss(sec){sec=Math.max(0,Math.round(sec));const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;return (h?h+":"+String(m).padStart(2,"0"):m)+":"+String(s).padStart(2,"0");}
 
+/* backrest angles for bench exercises */
+const BENCH={"Seated DB shoulder press":"80–90° (upright, one notch below straight up), back fully on the pad","Hip thrust":"flat bench, edge just below your shoulder blades (mid-back), no angle","Smith hip thrust":"flat bench placed lengthwise, edge just below your shoulder blades (mid-back)","Bulgarian split squat":"flat bench behind you, about knee height; top of the back foot on it","Step-up":"a flat bench or box about knee height (lower is fine at first)","Glute bridge machine":"set the back pad so it sits just below your shoulder blades"};
+
 /* ---------- progression (double progression + reps in reserve) ---------- */
 function target(e,beforeKey){
   const P=parsePlan(e.plan); if(!P) return null;
@@ -744,7 +748,7 @@ function tick(){
   if(S.rest){const left=(S.rest.end-Date.now())/1000;
     if(left<=0&&!S.rest.beeped){S.rest.beeped=true;saveRest();beep();}
     if(left<-6){S.rest=null;saveRest();}
-    else h+=`<div class="rest${left<=0?" go":""}"><span class="rl">${left<=0?"Go":"Rest"}${live?`<small>⏱ ${mmss((Date.now()-d.start)/1000)}</small>`:""}</span><b>${left<=0?"0:00":mmss(left)}</b><span class="rb"><button data-act="rest" data-d="-15">−15</button><button data-act="rest" data-d="15">+15</button><button data-act="rest" data-d="skip">Skip</button></span></div>`;}
+    else h+=`<div class="rest${left<=0?" go":""}"><span class="rl">${left<=0?"Go":"Rest"}${live?`<small>⏱ ${mmss((Date.now()-d.start)/1000)}</small>`:""}</span><b>${left<=0?"0:00":mmss(left)}</b><span class="rb"><button data-act="rest" data-d="skip">Skip</button></span></div>`;}
   if(live&&!h)h+=`<div class="sess"><span>⏱ Workout <b>${mmss((Date.now()-d.start)/1000)}</b></span><button data-act="sstop">Stop</button></div>`;
   if(bar.innerHTML!==h)bar.innerHTML=h;bar.hidden=!h;
 }
@@ -763,21 +767,21 @@ function exCard(e,i,k,locked,act){
   const full=P&&sets.length>=P.n;
   const topHit=P&&sets.length>=P.n&&sets.filter(s=>n(s.w)===Math.max(...sets.map(x=>n(x.w)))).every(s=>n(s.r)>=P.hi);
   let h=`<section class="card excard">
-    <div class="ex-head">${S.reorder&&!locked?`<span class="mv"><button data-act="exup" data-i="${i}" aria-label="Move up">▲</button><button data-act="exdown" data-i="${i}" aria-label="Move down">▼</button></span>`:""}<h3>${esc(e.name)}</h3>${e.plan?`<span class="plan">${esc(e.plan)}</span>`:""}${locked?"":`<button class="link" data-act="delex" data-i="${i}" aria-label="Remove ${esc(e.name)}">✕</button>`}</div>
+    <div class="ex-head"><h3>${esc(e.name)}</h3>${locked?"":`<button class="link" data-act="delex" data-i="${i}" aria-label="Remove ${esc(e.name)}">✕</button>`}</div>
     ${e.swapOf?`<div class="note">Swapped from ${esc(e.swapOf)}${!sets.length&&!locked?` · <button class="txtbtn" data-act="unswap" data-i="${i}">Back to ${esc(e.swapOf)}</button>`:""}</div>`:""}
     ${e.pick&&!sets.length&&!locked?`<div class="chips">${e.pick.map(p=>`<button class="chip" data-act="pickex" data-i="${i}" data-n="${esc(p)}" aria-pressed="${p===e.name}">${esc(p)}</button>`).join("")}</div>`:""}
-    ${info.tip?`<button class="tipline" data-act="tiptog" data-i="${i}"><span>💡 ${esc(info.tip)}</span>${S.ui.tip[i]&&info.why?`<small>${esc(info.why)}</small>`:""}</button>`:""}
     <div class="exbtns"><button data-act="formtog" data-i="${i}" aria-pressed="${!!S.ui.form[i]}">Form</button>${locked?"":`<button data-act="swaptog" data-i="${i}" aria-pressed="${!!S.ui.swap[i]}">Swap</button>`}<a href="${esc(videoFor(e.name))}" target="_blank" rel="noopener">▶ How-to video</a>${locked?"":`<button data-act="bwtog" data-n="${esc(e.name)}" aria-pressed="${bw}">${bw?"✓ Bodyweight":"Bodyweight"}</button>`}</div>
     ${!prev&&!sets.length&&!locked&&exInfo(e.name).setup&&!S.ui.form[i]?`<button class="txtbtn" data-act="formtog" data-i="${i}">First time? Tap here for how to set it up</button>`:""}
     ${S.ui.form[i]?vForm(e.name,i):""}
     ${S.ui.swap[i]?vSwap(e,i):""}
     ${e.note?`<div class="note">${esc(e.note)}</div>`:""}
     ${prev?`<div class="last">Last · ${short(prev.k)}: ${prev.e.sets.map(s=>`<b>${esc(setTxt(s))}</b>`).join(" ")}</div>`:""}
-    ${tg&&!locked&&!sets.length?`<div class="target ${tg.kind}"><b>Target: ${esc(tg.text)}</b><span>${esc(tg.why)}</span></div>`:""}
+    ${!tg&&e.plan&&!locked?`<div class="note">Plan: ${esc(e.plan)}</div>`:""}${tg&&!locked?`<div class="target ${tg.kind}"><b>Target: ${esc(tg.text)}</b><span>${esc(tg.why)}</span></div>`:""}
     ${sets.length?`<div class="sets">${sets.map((s,j)=>`<span class="set"><i>${j+1}</i>${esc(setTxt({...s,rir:null}))}${s.rir!=null?`<em>@${rirTxt(s.rir)}</em>`:""}${locked?"":`<button data-act="delset" data-i="${i}" data-j="${j}" aria-label="Delete set ${j+1}">×</button>`}</span>`).join("")}</div>`:""}
     ${topHit&&!locked?(bw&&!sets.some(s=>n(s.w))?`<div class="target up"><b>Top of the range on every set</b><span>Next time make it harder: 3 s lowering, a pause, or add a little weight.</span></div>`:`<div class="target up"><b>Increase weight next time: +${inc(e.name,n(lastW))} lb</b><span>Every set hit the top of the range.</span></div>`):""}`;
   if(!locked){
     if(info.cue)h+=`<div class="cue">${esc(info.cue)}</div>`;
+    if(BENCH[e.name])h+=`<div class="cue bench">🪑 Bench: ${esc(BENCH[e.name])}</div>`;
     h+=bw&&!addW?`<form class="add2 one" data-form="set" data-i="${i}">
         <label><span>Reps</span><input class="f" id="r-${i}" name="r" inputmode="numeric" placeholder="reps" value="${esc(ent.r??lastR)}" aria-label="Reps"></label>
       </form>`:`<form class="add2" data-form="set" data-i="${i}">
@@ -787,8 +791,8 @@ function exCard(e,i,k,locked,act){
       </form>`;
     if(bw)h+=`<button class="txtbtn" data-act="addwtog" data-i="${i}">${addW?"− No added weight":"+ Added weight (belt or vest)"}</button>`;
     h+=`
-      <div class="rirrow"><span class="label">Reps left</span>${[0,1,2,3,4].map(v=>`<button class="rir" data-act="rir" data-i="${i}" data-v="${v}" aria-pressed="${ent.rir===v}">${v===4?"4+":v}</button>`).join("")}</div>
-      <div class="row2b"><button class="btn" data-act="addset" data-i="${i}">Add set</button><button class="btn ${full?"":"ghost"}" data-act="excomplete" data-i="${i}">${full?"✓ Complete":"Complete"}</button></div>
+      <div class="rirrow"><span class="label">Reps left in the tank</span><div class="rirbtns">${[0,1,2,3,4].map(v=>`<button class="rir" data-act="rir" data-i="${i}" data-v="${v}" aria-pressed="${ent.rir===v}">${v===4?"4+":v}</button>`).join("")}</div></div>
+      ${full||!P?`<div class="row2b"><button class="btn" data-act="addset" data-i="${i}">Add set</button><button class="btn ${full?"":"ghost"}" data-act="excomplete" data-i="${i}">${full?"✓ Complete":"Complete"}</button></div>`:`<button class="btn" data-act="addset" data-i="${i}" style="width:100%">Add set ${sets.length+1} of ${P.n}</button>`}
       ${full&&!e.done?`<div class="note" style="color:var(--good)">All ${P.n} planned sets logged. Tap Complete to move it down.</div>`:""}`;
   }
   return h+`</section>`;
@@ -823,7 +827,7 @@ function vSwap(e,i){
   if(!alts.length)return `<div class="formp"><div class="note">No saved alternatives for ${esc(base)}.</div></div>`;
   const perm=S.settings.swaps?.[base];
   return `<div class="formp"><span class="label">Same muscle, Crunch equipment · ${esc(e.plan||"")}</span>
-    ${alts.map(([nm,eq,gd])=>`<div class="alt"><div><b>${esc(nm)}</b><small>${esc(eq)}</small><small>${esc(gd)}</small></div>
+    ${alts.map(([nm,eq,gd])=>`<div class="alt"><div><b>${esc(nm)}</b><small>${esc(eq)}</small><small>${esc(gd)}</small>${BENCH[nm]?`<small>🪑 Bench: ${esc(BENCH[nm])}</small>`:""}</div>
       <div class="altb"><button class="btn small" data-act="swapdo" data-i="${i}" data-n="${esc(nm)}">Today</button><button class="btn ghost small" data-act="swapperm" data-i="${i}" data-n="${esc(nm)}">${perm===nm?"✓ Always":"Always"}</button></div></div>`).join("")}
     ${perm?`<button class="btn ghost small" data-act="swapclear" data-n="${esc(base)}">Stop always swapping ${esc(base)}</button>`:""}</div>`;
 }
@@ -888,11 +892,10 @@ function vToday(){
     return h;
   }
   h+=`<section class="card"><div class="row"><span class="label">Session</span><span class="note">Planned: ${esc(planned)}</span></div>
-    <div class="chips">${SESSIONS.map(s=>`<button class="chip" style="--c:${SC[s]}" data-act="session" data-s="${esc(s)}" aria-pressed="${cur===s}">${esc(s)}</button>`).join("")}</div>
+    ${(()=>{const sel=cur||planned;return `<div class="sesspick"><select class="f" data-sess="1" aria-label="Session">${SESSIONS.map(s=>`<option value="${esc(s)}"${s===sel?" selected":""}>${esc(s)}${s===planned?" (planned)":""}</option>`).join("")}</select>${!cur&&sel!=="Rest"?`<button class="btn" data-act="session" data-s="${esc(sel)}">Start ${esc(sel)}</button>`:""}</div>`;})()}
     ${cur&&PROGRAM[cur]?`<div class="note">${esc(PROGRAM[cur].focus)}</div>`:""}
     ${k===todayKey()&&!hasSets?`<button class="txtbtn" data-tab="next">See your next workout with targets →</button>`:""}
-    ${ex.length&&k===todayKey()?`<div class="row" style="align-items:center;flex-wrap:wrap">${d.start?(d.end?`<span class="note" style="color:var(--ink)">Workout time: <input class="f mini" data-dur="1" inputmode="numeric" value="${duration(d)}" aria-label="Minutes"> min</span>`:`<span class="note" style="color:var(--ink)">⏱ Timer running</span>`):`<button class="btn ghost small" data-act="sstart">Start workout timer</button>`}
-      <button class="btn ghost small" data-act="reord" aria-pressed="${S.reorder}">${S.reorder?"Done reordering":"Reorder"}</button></div>`:""}
+    ${ex.length&&k===todayKey()?`<div class="row" style="align-items:center;flex-wrap:wrap">${d.start?(d.end?`<span class="note" style="color:var(--ink)">Workout time: <input class="f mini" data-dur="1" inputmode="numeric" value="${duration(d)}" aria-label="Minutes"> min</span>`:`<span class="note" style="color:var(--ink)">⏱ Timer running</span>`):`<button class="btn ghost small" data-act="sstart">Start workout timer</button>`}</div>`:""}
   </section>`;
   if(!ex.length){
     h+=`<section class="card empty">${cur==="Rest"?"Rest day. Get your steps in.":`No exercises yet. Tap <b>${esc(planned==="Rest"?"a session":planned)}</b> above to load the plan, or add one below.`}</section>`;
@@ -900,7 +903,8 @@ function vToday(){
     const order=[...ex.keys()].filter(i=>!ex[i].done).concat([...ex.keys()].filter(i=>ex[i].done).sort((a,b)=>n(ex[a].doneAt)-n(ex[b].doneAt)));
     order.forEach(i=>{h+=exCard(ex[i],i,k,false);});
   }
-  if(hasSets) h+=`<button class="btn finish" data-act="finish">Finish workout</button>`;
+  if(hasSets){const need=ex.filter(e=>parsePlan(e.plan)&&e.name!=="Incline walk"),allSets=need.every(e=>(e.sets||[]).length>=parsePlan(e.plan).n);
+    h+=allSets?`<button class="btn finish" data-act="finish">Finish workout</button>`:`<div class="note" style="text-align:center">Finish workout appears when every planned set is logged. <button class="txtbtn" data-act="finish" style="font-size:15px;color:var(--muted)">Skipping the rest? End workout</button></div>`;}
   const names=[...new Set([...Object.keys(PLAN_OF),...Object.keys(EX),...sortedKeys().flatMap(x=>(S.days[x].exercises||[]).map(e=>e.name))])].sort();
   h+=`<section class="card"><span class="label">Add an exercise</span>
     <form class="add" data-form="ex" style="grid-template-columns:1fr auto">
@@ -1296,7 +1300,7 @@ function vGuide(){
       <li>Every exercise shows a <b>Target</b> based on what you logged last time. Check the <b>Next</b> tab before you go.</li>
       <li>Hit the top of the rep range on every set? The app tells you to <b>add weight</b> next time <span class="badge">↑ Up</span>.</li>
       <li>Fell a little short? Same weight, beat your reps. Way short? It drops the weight a bit so you can own it.</li>
-      <li>Tap <b>Reps left</b> after each set (how many more you could have done). It makes the suggestions smarter: 3+ left means go heavier.</li>
+      <li>Tap <b>Reps left in the tank</b> after each set (how many more you could have done). It makes the suggestions smarter: 3+ left means go heavier.</li>
       <li>First time on an exercise: pick a weight that leaves about 2 reps in the tank at the top of the range.</li></ul>`)
   +card("Rest is part of the plan",`<ul class="big">
       <li><b>Between sets:</b> rest 2–3 minutes on big lifts (hip thrust, split squat, RDL, leg press) and 60–90 seconds on smaller ones. The app's yellow <b>rest timer</b> starts after every set. Wait for it: rushing makes the next set weaker, and strong sets are what build muscle.</li>
@@ -1506,12 +1510,7 @@ document.addEventListener("click",e=>{
   const a=b.dataset.act,k=S.date;
   if(a==="prev"){S.date=addDays(k,-1);render();}
   else if(a==="next"){S.date=addDays(k,1);render();}
-  else if(a==="session"){
-    const d=ensure(k),s=b.dataset.s;d.session=s;S.entry={};S.ui={form:{},swap:{},tip:{},more:{}};
-    if(PROGRAM[s]&&!d.exercises.some(x=>x.sets?.length)){loadSession(d,s);}
-    if(s==="Rest"&&!d.exercises.some(x=>x.sets?.length)) d.exercises=[];
-    save(k);render();
-  }
+  else if(a==="session"){pickSession(k,b.dataset.s);}
   else if(a==="delex"){const d=ensure(k);d.exercises.splice(+b.dataset.i,1);S.entry={};S.ui={form:{},swap:{},tip:{},more:{}};save(k);render();}
   else if(a==="delset"){const d=ensure(k);d.exercises[+b.dataset.i].sets.splice(+b.dataset.j,1);save(k);render();}
   else if(a==="delfood"){const d=ensure(k);d.food.splice(+b.dataset.i,1);save(k);render();}
@@ -1610,6 +1609,13 @@ document.addEventListener("change",e=>{
 });
 
 /* ---------- workout handlers ---------- */
+function pickSession(k,s){
+  const d=ensure(k);d.session=s;S.entry={};S.ui={form:{},swap:{},tip:{},more:{}};
+  if(PROGRAM[s]&&!d.exercises.some(x=>x.sets?.length)){loadSession(d,s);}
+  if(s==="Rest"&&!d.exercises.some(x=>x.sets?.length)) d.exercises=[];
+  save(k);render();
+}
+document.addEventListener("change",ev=>{const el=ev.target;if(!el.dataset?.sess)return;pickSession(S.date,el.value);});
 function addSet(i){
   const k=S.date,d=ensure(k),e=d.exercises[i];if(!e)return;
   const bw=isBW(e),wEl=document.getElementById("w-"+i);
@@ -1619,7 +1625,7 @@ function addSet(i){
   const ent=S.entry[i]||{rir:null,tags:[]},s={r:+r,w:+w,t:Date.now()};
   if(bw)s.bw=true;
   if(ent.rir!=null)s.rir=ent.rir;
-  e.sets=e.sets||[];e.sets.push(s);delete ent.r;delete ent.w;
+  e.sets=e.sets||[];e.sets.push(s);delete ent.r;delete ent.w;ent.rir=null;
   if(!d.session)d.session="Custom";
   if(k===todayKey()&&!d.start)d.start=s.t;
   try{S.ac=S.ac||new (window.AudioContext||window.webkitAudioContext)();S.ac.resume&&S.ac.resume();}catch(x){}
@@ -1638,8 +1644,8 @@ document.addEventListener("click",ev=>{
     case "tag":{const ent=S.entry[i]||(S.entry[i]={rir:null,tags:[]});const t=b.dataset.t;ent.tags=ent.tags.includes(t)?ent.tags.filter(x=>x!==t):[...ent.tags,t];render();break;}
     case "moretags":S.ui.more[i]=!S.ui.more[i];render();break;
     case "tiptog":S.ui.tip[i]=!S.ui.tip[i];render();break;
-    case "formtog":S.ui.form[i]=!S.ui.form[i];S.editEx=null;render();break;
-    case "swaptog":S.ui.swap[i]=!S.ui.swap[i];render();break;
+    case "formtog":{const o=!S.ui.form[i];S.ui.form[i]=o;if(o){S.ui.swap[i]=false;S.ui.tip[i]=false;}S.editEx=null;render();break;}
+    case "swaptog":{const o=!S.ui.swap[i];S.ui.swap[i]=o;if(o){S.ui.form[i]=false;S.ui.tip[i]=false;}render();break;}
     case "formedit":S.editEx=b.dataset.n;render();break;
     case "formcancel":S.editEx=null;render();break;
     case "formsave":{const nm=b.dataset.n,g=id=>document.getElementById(id)?.value??"",lines=x=>x.split("\n").map(s=>s.trim()).filter(Boolean);
@@ -1654,7 +1660,6 @@ document.addEventListener("click",ev=>{
     case "swapclear":{const sw={...(S.settings.swaps||{})};delete sw[b.dataset.n];S.settings.swaps=sw;saveSettings();render();toast("Back to the plan");break;}
     case "unswap":{const e=E();if(e.sets?.length)return;e.name=e.swapOf;delete e.swapOf;save(k);render();break;}
     case "excomplete":{const e=E();e.done=true;e.doneAt=Date.now();S.ui.form[i]=false;S.ui.swap[i]=false;
-      if(S.rest&&S.rest.name===e.name){S.rest=null;saveRest();}
       const d=D();if(allDone(d)&&d.start&&!d.end){d.end=Date.now();toast("All exercises done. Tap Finish workout for your recap.");}
       save(k);render();break;}
     case "exreopen":{const e=E();e.done=false;delete e.doneAt;save(k);render();break;}
