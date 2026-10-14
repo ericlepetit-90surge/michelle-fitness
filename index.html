@@ -1,4 +1,5 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}.nxsel{font:700 24px var(--display);text-transform:uppercase;letter-spacing:.03em}
+</style></head><body>
 <title>Michelle Fitness</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -924,7 +925,7 @@ function vToday(){
     return h;
   }
   h+=`<section class="card"><div class="row"><span class="label">Session</span><span class="note">Planned: ${esc(planned)}</span></div>
-    ${(()=>{const sel=cur||planned;return `<div class="sesspick"><select class="f" data-sess="1" aria-label="Session">${SESSIONS.map(s=>`<option value="${esc(s)}"${s===sel?" selected":""}>${esc(s)}${s===planned?" (planned)":""}</option>`).join("")}</select>${!cur&&sel!=="Rest"?`<button class="btn" data-act="session" data-s="${esc(sel)}">Start ${esc(sel)}</button>`:""}</div>`;})()}
+    ${(()=>{const np=S.settings.nextPick,sel=cur||(np&&np.date===k&&PROGRAM[np.sess]?np.sess:planned);return `<div class="sesspick"><select class="f" data-sess="1" aria-label="Session">${SESSIONS.map(s=>`<option value="${esc(s)}"${s===sel?" selected":""}>${esc(s)}${s===planned?" (planned)":""}</option>`).join("")}</select>${!cur&&sel!=="Rest"?`<button class="btn" data-act="session" data-s="${esc(sel)}">Start ${esc(sel)}</button>`:""}</div>`;})()}
     ${cur&&PROGRAM[cur]?`<div class="note">${esc(PROGRAM[cur].focus)}</div>`:""}
     ${k===todayKey()&&!hasSets?`<button class="txtbtn" data-tab="next">See your next workout with targets →</button>`:""}
     ${ex.length&&k===todayKey()?`<div class="row" style="align-items:center;flex-wrap:wrap">${d.start?(d.end?`<span class="note" style="color:var(--ink)">Workout time: <input class="f mini" data-dur="1" inputmode="numeric" value="${duration(d)}" aria-label="Minutes"> min</span>`:`<span class="note" style="color:var(--ink)">⏱ Timer running</span>`):`<button class="btn ghost small" data-act="sstart">Start workout timer</button>`}</div>`:""}
@@ -946,12 +947,13 @@ function vToday(){
   return h;
 }
 function vNext(){
-  const nx=nextWorkout(), P=PROGRAM[nx.sess];
+  const nx0=nextWorkout(),np=S.settings.nextPick,sel=np&&np.date===nx0.date&&PROGRAM[np.sess]?np.sess:nx0.sess,nx={...nx0,sess:sel},P=PROGRAM[sel],swapped=sel!==nx0.sess;
   const rows=P.ex.map(([nm,plan,note,pick])=>{const e=makeEx(nm,plan,note,pick);return {name:e.name,plan,pick,t:target(e,nx.date),tip:exInfo(e.name).tip};});
   const tag={up:`<span class="badge">↑ Up</span>`,hold:`<span class="badge hold">Same</span>`,down:`<span class="badge down">↓ Down</span>`,new:`<span class="badge hold">New</span>`};
   return `<section class="card nextcard" style="--sc:${SC[nx.sess]}"><div class="row" style="align-items:baseline"><span class="label">Next workout</span><span class="note">${nx.date===todayKey()?"Today":fmt(nx.date)}</span></div>
-    <h2 style="margin:0">${esc(nx.sess)} <span class="note" style="font-family:var(--body);text-transform:none;letter-spacing:0">${esc(P.focus)}</span></h2>
-    ${nx.why?`<div class="note" style="color:var(--ink)">${esc(nx.why)}.</div>`:""}
+    <select class="f nxsel" data-nxpick="${nx.date}" aria-label="Choose workout">${Object.keys(PROGRAM).map(s2=>`<option value="${esc(s2)}"${s2===sel?" selected":""}>${esc(s2)}${s2===nx0.sess?" (planned)":""}</option>`).join("")}</select>
+    <div class="note">${esc(P.focus)}</div>
+    ${swapped?`<div class="note" style="color:var(--ink)">Swapped from ${esc(nx0.sess)}. It'll be preselected on the Today tab${nx.date===todayKey()?"":" on "+short(nx.date)}. <button class="txtbtn" data-act="nxreset" style="font-size:16px">Back to ${esc(nx0.sess)}</button></div>`:nx.why?`<div class="note" style="color:var(--ink)">${esc(nx.why)}.</div>`:""}
     ${vCoachNote()}
     <div class="nxlist">${rows.map(r=>`<div class="nxrow">
       <div class="nxtop"><b>${esc(r.name)}</b>${r.t?tag[r.t.kind]:""}</div>
@@ -961,9 +963,10 @@ function vNext(){
       ${r.tip?`<div class="nxtip">💡 ${esc(r.tip)}</div>`:""}
       <a class="txtbtn" href="${esc(videoFor(r.name))}" target="_blank" rel="noopener">▶ Watch how to use it</a>
     </div>`).join("")}</div>
-    <button class="btn" data-act="gonext" data-d="${nx.date}" data-s="${esc(nx.sess)}">Start ${esc(nx.sess)}${nx.date===todayKey()?"":" on "+short(nx.date)}</button>
   </section>`+vBackupNudge()+vCoach2('next')+vWeekPlan();
 }
+document.addEventListener("change",ev=>{const el=ev.target;if(!el.dataset?.nxpick)return;S.settings.nextPick={date:el.dataset.nxpick,sess:el.value};el.blur();saveSettings();render();});
+document.addEventListener("click",ev=>{if(!ev.target.closest('[data-act="nxreset"]'))return;delete S.settings.nextPick;saveSettings();render();});
 
 /* ---------- Food tab: daily check-in ---------- */
 S.ciDate=todayKey();
@@ -1647,7 +1650,7 @@ function pickSession(k,s){
   if(s==="Rest"&&!d.exercises.some(x=>x.sets?.length)) d.exercises=[];
   save(k);render();
 }
-document.addEventListener("change",ev=>{const el=ev.target;if(!el.dataset?.sess)return;pickSession(S.date,el.value);});
+document.addEventListener("change",ev=>{const el=ev.target;if(!el.dataset?.sess)return;el.blur();pickSession(S.date,el.value);});
 function addSet(i){
   const k=S.date,d=ensure(k),e=d.exercises[i];if(!e)return;
   const bw=isBW(e),wEl=document.getElementById("w-"+i);
@@ -2037,7 +2040,7 @@ function vWelcome(){
     <p>The app has 5 tabs at the bottom of the screen:</p>
     <div class="wtabs">
       <div><span class="wtab">Progress</span><p>The app opens here: log your weight, see your progress photos and how much stronger you're getting.</p></div>
-      <div><span class="wtab">Next</span><p><b>Before the gym, look here.</b> It shows your next workout, every exercise, and the exact weight to use. As you get stronger, it raises your weights for you. At the gym, tap <b>Start</b>.</p></div>
+      <div><span class="wtab">Next</span><p><b>Before the gym, look here.</b> It shows your next workout, every exercise, and the exact weight to use. As you get stronger, it raises your weights for you. Want a different workout that day? Pick it from the menu at the top. At the gym, start it from the <b>Today</b> tab.</p></div>
       <div><span class="wtab">Today</span><p>Your workout at the gym. After each set, enter your reps and weight and tap <b>Add set</b>. A rest timer starts on its own. Not sure about a machine? Tap <b>▶ How-to video</b> or <b>Form</b>.</p></div>
       <div><span class="wtab">Protein</span><p>Your glutes need protein to grow. <b>Aim for ${st.protein||100} g a day</b> (based on the weight you entered). You don't log your food, only the protein: when you eat chicken, eggs, yogurt or a shake, tap its button (like <b>+35 g Chicken</b>) and the bar fills up toward your goal.</p></div>
       <div><span class="wtab">Plan</span><p>Your full plan and tips, any time you want to reread them.</p></div>
