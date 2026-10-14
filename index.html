@@ -107,7 +107,7 @@ svg text{fill:var(--muted);font:13px var(--mono)}
 .week div b{display:block;font:700 18px var(--display);text-transform:uppercase;color:var(--ink)}
 .week div.on{border-color:color-mix(in srgb,var(--sc) 50%, var(--line))}
 .week div.done{background:color-mix(in srgb,var(--good) 20%, var(--sunk));border-color:var(--good);color:var(--ink)}
-nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:color-mix(in srgb,var(--surface) 80%, transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--line);display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,.9fr) minmax(0,1.15fr) minmax(0,1.3fr) minmax(0,.85fr);gap:2px;padding:8px 6px calc(10px + env(safe-area-inset-bottom,0px))}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:color-mix(in srgb,var(--surface) 80%, transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.95fr) minmax(0,.85fr) minmax(0,1.15fr) minmax(0,.85fr);gap:2px;padding:8px 6px calc(10px + env(safe-area-inset-bottom,0px))}
 nav.tabs button{background:none;border:0;border-radius:14px;padding:12px 0;font:700 16px var(--display);text-transform:uppercase;letter-spacing:.01em;color:var(--muted);cursor:pointer}
 nav.tabs button[aria-current="true"]{color:var(--sc);background:color-mix(in srgb,var(--sc) 16%, transparent)}
 .toast{position:fixed;left:50%;bottom:calc(100px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:14px;font-size:17px;font-weight:500;z-index:9;max-width:90vw}
@@ -300,10 +300,10 @@ table.tl td{font-size:17px;padding:9px 4px;vertical-align:top}table.tl td:first-
   <main id="app"><div class="card empty">Loading your log…</div></main>
 </div>
 <nav class="tabs" id="tabs">
-  <button data-tab="today">Lift</button>
+  <button data-tab="progress">Progress</button>
+  <button data-tab="today">Today</button>
   <button data-tab="next">Next</button>
   <button data-tab="food">Protein</button>
-  <button data-tab="progress">Progress</button>
   <button data-tab="program">Plan</button>
 </nav>
 <div class="tbar" id="tbar" hidden></div>
@@ -561,7 +561,7 @@ let WEEK = {1:"Glutes A",3:"Glutes B",5:"Glutes C"};
 let SESSIONS = [...Object.keys(PROGRAM),"Rest"];
 let PLAN_OF = {}; Object.values(PROGRAM).forEach(p=>p.ex.forEach(([n,pl,note,pick])=>{ (pick||[n]).forEach(x=>{ if(!PLAN_OF[x]) PLAN_OF[x]={plan:pl,note}; }); }));
 
-const S = {days:{}, settings:{kcal:1800, protein:110, burnOn:false}, date:todayKey(), tab:"today", mode:"loading", db:null, dirty:new Set(), pick:null, reopen:{}, sample:null, sampleText:null, canPhoto:false, look:{q:"",status:"idle",food:null,sel:0,qty:1,msg:"",ctl:null,src:"",edit:false}, foods:{}, photo:{file:null,url:"",status:"idle",items:null,note:"",msg:"",ctl:null}};
+const S = {days:{}, settings:{kcal:1800, protein:110, burnOn:false}, date:todayKey(), tab:"progress", mode:"loading", db:null, dirty:new Set(), pick:null, reopen:{}, sample:null, sampleText:null, canPhoto:false, look:{q:"",status:"idle",food:null,sel:0,qty:1,msg:"",ctl:null,src:"",edit:false}, foods:{}, photo:{file:null,url:"",status:"idle",items:null,note:"",msg:"",ctl:null}};
 const timers = {}, chains = {};
 
 function todayKey(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
@@ -2036,10 +2036,10 @@ function vWelcome(){
     <h2>How it works</h2>
     <p>The app has 5 tabs at the bottom of the screen:</p>
     <div class="wtabs">
-      <div><span class="wtab">Next</span><p><b>Start here.</b> It shows your next workout, every exercise, and the exact weight to use. As you get stronger, it raises your weights for you. At the gym, tap <b>Start</b>.</p></div>
-      <div><span class="wtab">Lift</span><p>Your workout at the gym. After each set, enter your reps and weight and tap <b>Add set</b>. A rest timer starts on its own. Not sure about a machine? Tap <b>▶ How-to video</b> or <b>Form</b>.</p></div>
+      <div><span class="wtab">Progress</span><p>The app opens here: log your weight, see your progress photos and how much stronger you're getting.</p></div>
+      <div><span class="wtab">Next</span><p><b>Before the gym, look here.</b> It shows your next workout, every exercise, and the exact weight to use. As you get stronger, it raises your weights for you. At the gym, tap <b>Start</b>.</p></div>
+      <div><span class="wtab">Today</span><p>Your workout at the gym. After each set, enter your reps and weight and tap <b>Add set</b>. A rest timer starts on its own. Not sure about a machine? Tap <b>▶ How-to video</b> or <b>Form</b>.</p></div>
       <div><span class="wtab">Protein</span><p>Your glutes need protein to grow. <b>Aim for ${st.protein||100} g a day</b> (based on the weight you entered). You don't log your food, only the protein: when you eat chicken, eggs, yogurt or a shake, tap its button (like <b>+35 g Chicken</b>) and the bar fills up toward your goal.</p></div>
-      <div><span class="wtab">Progress</span><p>Your weight, progress photos, and how much stronger you're getting.</p></div>
       <div><span class="wtab">Plan</span><p>Your full plan and tips, any time you want to reread them.</p></div>
       <div><span class="wtab">💬 Coach</span><p>Have a question? Tap <b>Ask my coach a question</b> on the Next or Plan tab. More on the next page.</p></div>
     </div>
