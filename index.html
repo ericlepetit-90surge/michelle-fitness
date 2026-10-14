@@ -741,16 +741,19 @@ function target(e,beforeKey){
 function suggest(name,sets,P,rng){
   rng=rng||(P.lo===P.hi?`${P.lo}`:`${P.lo}–${P.hi}`);
   if(sets.length&&sets.every(s=>!n(s.w))){const reps=sets.map(s=>n(s.r)),top=sets.length>=2?reps.every(r=>r>=P.hi):reps[0]>=P.hi+2;
-    if(top)return {kind:"up",w:"",text:`${P.n} sets × ${rng} reps`,why:`You hit ${reps.join(", ")}. Make it harder: 3 s lowering, a pause, or add a little weight.`};
-    const goal=Math.min(P.hi,Math.max(...reps)+1);return {kind:"hold",w:"",text:`${P.n} sets × ${rng} reps`,why:`Beat last time: aim for ${goal} reps on every set.`};}
+    if(top)return {kind:"up",w:"",goal:P.hi,text:`${P.n} sets × ${rng} reps`,why:`You hit ${reps.join(", ")}. Make it harder: 3 s lowering, a pause, or add a little weight.`};
+    const goal=Math.min(P.hi,Math.max(...reps)+1);return {kind:"hold",w:"",goal,text:`${P.n} sets × ${goal} reps`,why:`Beat last time: aim for ${goal} reps on every set.`};}
   const mx=Math.max(...sets.map(s=>n(s.w)));
-  const work=sets.filter(s=>n(s.w)===mx), reps=work.map(s=>n(s.r)), tot=reps.reduce((a,b)=>a+b,0), ar=avgRir(work);
+  const work=sets.filter(s=>n(s.w)===mx), reps=work.map(s=>n(s.r)), tot=reps.reduce((a,b)=>a+b,0);
+  /* capacity = reps done + reps left in the tank (1.5 assumed when not logged) */
+  const cap=work.reduce((a,s)=>a+n(s.r)+(s.rir!=null?Math.min(n(s.rir),5):1.5),0)/work.length, easy=work.filter(s=>s.rir!=null&&n(s.rir)>=3).length;
   const hitTop = work.length>=2 ? tot>=P.hi*work.length-1 : reps[0]>=P.hi+2;
-  if(hitTop){const step=inc(name,mx)*(ar!=null&&ar>=3?2:1);const nw=r05(mx+step);
-    return {kind:"up",w:nw,text:`${nw} × ${rng}, ${P.n} sets`,why:ar!=null&&ar>=3?`Top of the range with ${rirTxt(Math.round(ar))} reps left: too light. Jump to ${nw}.`:`You hit ${reps.join(", ")} at ${mx}. Go up to ${nw} and start at ${P.lo}+ reps.`};}
-  if(tot/work.length < P.lo-1){const nw=r05(mx*0.9);return {kind:"down",w:nw,text:`${nw} × ${rng}, ${P.n} sets`,why:`${reps.join(", ")} at ${mx} is under the ${rng} range. Drop to ${nw} and own the reps.`};}
-  const goal=Math.min(P.hi,Math.max(...reps)+(ar!=null&&ar>=3?2:1));
-  return {kind:"hold",w:mx,text:`${mx} × ${rng}, ${P.n} sets`,why:ar!=null&&ar>=3?`You had 3+ reps left. Stay at ${mx} and add reps: aim for ${goal} on every set.`:`Stay at ${mx}. Beat last time: aim for ${goal} on every set.`};
+  const tooLight = cap>=P.hi+2 || (easy*2>=work.length && cap>=P.hi);
+  if(hitTop||tooLight){const step=inc(name,mx)*(cap>=P.hi+5?2:1);const nw=r05(mx+step);
+    return {kind:"up",w:nw,goal:P.lo,text:`${nw} × ${rng}, ${P.n} sets`,why:tooLight&&!hitTop||cap>=P.hi+2?`At ${mx} you had about ${Math.round(cap)} reps in you per set: too light. Go to ${nw} and aim for ${P.lo}+.`:`You hit ${reps.join(", ")} at ${mx}. Go up to ${nw} and aim for ${P.lo}+.`};}
+  if(cap < P.lo){const nw=r05(mx*0.9);return {kind:"down",w:nw,goal:P.lo,text:`${nw} × ${rng}, ${P.n} sets`,why:`${reps.join(", ")} at ${mx} is under the ${rng} range. Drop to ${nw} and own the reps.`};}
+  const goal=Math.max(P.lo,Math.min(P.hi,Math.max(Math.min(...reps)+1,Math.round(cap-1.5))));
+  return {kind:"hold",w:mx,goal,text:`${mx} × ${goal}, ${P.n} sets`,why:easy?`Stay at ${mx}. You had 3+ reps left on ${easy} set${easy>1?"s":""}, so push closer: ${goal} reps on every set.`:`Stay at ${mx}. Beat last time: ${goal} reps on every set.`};
 }
 
 /* ---------- conservative calorie burn ---------- */
