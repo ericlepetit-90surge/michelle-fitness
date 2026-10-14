@@ -704,10 +704,9 @@ S.st={edit:false};
 function spUrl(u){u=String(u||"").trim();let m=u.match(/^spotify:(playlist|album|artist|track):([A-Za-z0-9]+)/);if(m)return `https://open.spotify.com/${m[1]}/${m[2]}`;
   m=u.match(/^https:\/\/open\.spotify\.com\/(?:intl-[a-z]+\/)?(playlist|album|artist|track)\/([A-Za-z0-9]+)/);return m?`https://open.spotify.com/${m[1]}/${m[2]}`:null;}
 function vSoundtrack(){
-  const L=S.settings.playlists||[],E=S.st.edit;
-  if(!L.length&&!E)return `<button class="btn ghost" data-act="stedit" style="width:100%">🎧 Add your Spotify playlists</button>`;
-  return `<section class="card st"><div class="row" style="align-items:center"><span class="label">🎧 Soundtrack</span><button class="txtbtn" data-act="stedit">${E?"Done":"Edit"}</button></div>
-    <div class="stlist">${L.map((p,i)=>`<div class="strow"><a class="stbtn" href="${esc(p.u)}" target="_blank" rel="noopener"><span>▶</span>${esc(p.n)}</a>${E?`<button class="link" data-act="stdel" data-i="${i}" aria-label="Remove ${esc(p.n)}">✕</button>`:""}</div>`).join("")}</div>
+  const L=S.settings.playlists||[],E=S.st.edit,PRE=[{n:"ME",u:"https://open.spotify.com/playlist/1IyNB3o0sa2XQC3p0B7wTQ"}];
+  return `<section class="card st"><div class="row" style="align-items:center"><span class="label">🎧 Soundtrack</span><button class="txtbtn" data-act="stedit">${E?"Done":L.length?"Edit":"+ Add yours"}</button></div>
+    <div class="stlist">${PRE.map(p=>`<div class="strow"><a class="stbtn" href="${esc(p.u)}" target="_blank" rel="noopener"><span>▶</span>${esc(p.n)}</a></div>`).join("")}${L.map((p,i)=>`<div class="strow"><a class="stbtn" href="${esc(p.u)}" target="_blank" rel="noopener"><span>▶</span>${esc(p.n)}</a>${E?`<button class="link" data-act="stdel" data-i="${i}" aria-label="Remove ${esc(p.n)}">✕</button>`:""}</div>`).join("")}</div>
     ${E?`<div class="note" style="color:var(--ink)">In Spotify, open a playlist, tap ⋯ → Share → <b>Copy link</b>, then paste it here.</div>
       <form class="fadd" data-form="playlist"><input class="f" id="stn" placeholder="Name, e.g. Heavy day" autocomplete="off"><input class="f" id="stu" placeholder="Paste Spotify link" autocomplete="off" style="grid-column:1/-1"><button class="btn" type="submit">Add playlist</button></form>`:""}
   </section>`;
