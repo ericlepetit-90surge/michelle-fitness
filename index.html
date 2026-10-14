@@ -925,7 +925,7 @@ function vToday(){
     return h;
   }
   h+=`<section class="card"><div class="row"><span class="label">Session</span><span class="note">Planned: ${esc(planned)}</span></div>
-    ${(()=>{const np=S.settings.nextPick,sel=cur||(np&&np.date===k&&PROGRAM[np.sess]?np.sess:planned);return `<div class="sesspick"><select class="f" data-sess="1" aria-label="Session">${SESSIONS.map(s=>`<option value="${esc(s)}"${s===sel?" selected":""}>${esc(s)}${s===planned?" (planned)":""}</option>`).join("")}</select>${!cur&&sel!=="Rest"?`<button class="btn" data-act="session" data-s="${esc(sel)}">Start ${esc(sel)}</button>`:""}</div>`;})()}
+    ${(()=>{const np=S.settings.nextPick,sel=cur||(np&&np.date===k&&PROGRAM[np.sess]?np.sess:planned);if(cur&&S.chgSess!==S.date)return `<div class="row" style="align-items:center;flex-wrap:wrap;gap:8px 14px"><b style="font:700 24px var(--display);text-transform:uppercase;letter-spacing:.03em">${esc(cur)}</b><button class="txtbtn" data-act="chgsess" style="font-size:17px">Change workout</button></div>`;return `<div class="sesspick"><select class="f" data-sess="1" aria-label="Session">${SESSIONS.map(s=>`<option value="${esc(s)}"${s===sel?" selected":""}>${esc(s)}${s===planned?" (planned)":""}</option>`).join("")}</select>${!cur&&sel!=="Rest"?`<button class="btn" data-act="session" data-s="${esc(sel)}">Start ${esc(sel)}</button>`:""}</div>`;})()}
     ${cur&&PROGRAM[cur]?`<div class="note">${esc(PROGRAM[cur].focus)}</div>`:""}
     ${k===todayKey()&&!hasSets?`<button class="txtbtn" data-tab="next">See your next workout with targets →</button>`:""}
     ${ex.length&&k===todayKey()?`<div class="row" style="align-items:center;flex-wrap:wrap">${d.start?(d.end?`<span class="note" style="color:var(--ink)">Workout time: <input class="f mini" data-dur="1" inputmode="numeric" value="${duration(d)}" aria-label="Minutes"> min</span>`:`<span class="note" style="color:var(--ink)">⏱ Timer running</span>`):`<button class="btn ghost small" data-act="sstart">Start workout timer</button>`}</div>`:""}
@@ -966,6 +966,7 @@ function vNext(){
   </section>`+vBackupNudge()+vCoach2('next')+vWeekPlan();
 }
 document.addEventListener("change",ev=>{const el=ev.target;if(!el.dataset?.nxpick)return;S.settings.nextPick={date:el.dataset.nxpick,sess:el.value};el.blur();saveSettings();render();});
+document.addEventListener("click",ev=>{if(!ev.target.closest('[data-act="chgsess"]'))return;S.chgSess=S.date;render();});
 document.addEventListener("click",ev=>{if(!ev.target.closest('[data-act="nxreset"]'))return;delete S.settings.nextPick;saveSettings();render();});
 
 /* ---------- Food tab: daily check-in ---------- */
@@ -1645,7 +1646,7 @@ document.addEventListener("change",e=>{
 
 /* ---------- workout handlers ---------- */
 function pickSession(k,s){
-  const d=ensure(k);d.session=s;S.entry={};S.ui={form:{},swap:{},tip:{},more:{}};
+  S.chgSess=null;const d=ensure(k);d.session=s;S.entry={};S.ui={form:{},swap:{},tip:{},more:{}};
   if(PROGRAM[s]&&!d.exercises.some(x=>x.sets?.length)){loadSession(d,s);}
   if(s==="Rest"&&!d.exercises.some(x=>x.sets?.length)) d.exercises=[];
   save(k);render();
