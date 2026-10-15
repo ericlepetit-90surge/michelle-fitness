@@ -634,8 +634,9 @@ function weekPlan(today){
   const done=new Set(Object.values(logged).filter(x=>ORDER.includes(x)));
   const last=lastOrderSession(today),start=last?(ORDER.indexOf(last)+1)%ORDER.length:0;
   const remaining=ORDER.map((_,i)=>ORDER[(start+i)%ORDER.length]).filter(x=>!done.has(x));
-  const first=trained(today)?addDays(today,1):today;
-  const free=wk.filter(k=>k>=first&&!logged[k]);
+  const isRest=k=>S.days[k]?.session==="Rest"&&!trained(k);
+  const first=(trained(today)||isRest(today))?addDays(today,1):today;
+  const free=wk.filter(k=>k>=first&&!logged[k]&&!isRest(k));
   const at={...logged},plan=[],unplaced=[];
   const lowerNear=k=>[addDays(k,-1),addDays(k,1)].some(x=>isLower(at[x]));
   const defDay=x=>{const d=+Object.keys(WEEK).find(w=>WEEK[w]===x);return addDays(mon,(d+6)%7);};
