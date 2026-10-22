@@ -1,5 +1,7 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}.nxsel{font:700 24px var(--display);text-transform:uppercase;letter-spacing:.03em}
 .finask{display:flex;flex-direction:column;gap:10px;text-align:center}.finask b{font-size:21px}
+.stbar{width:100%;display:flex;justify-content:space-between;align-items:center;font-size:19px}.stbar .sttg{color:var(--muted);font-size:17px}
+.water{margin-top:14px;padding:14px;border-radius:14px;background:color-mix(in srgb,#38bdf8 10%,transparent);border:1px solid color-mix(in srgb,#38bdf8 35%,transparent)}.water b{font-size:20px}.wtot{font:700 26px var(--display)}.wtot small{font-size:16px;color:var(--muted)}.wbar{height:12px;border-radius:8px;background:color-mix(in srgb,var(--ink) 12%,transparent);margin:10px 0;overflow:hidden}.wbar>div{height:100%;background:#38bdf8;border-radius:8px}.wbtns{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px}.wbtns .btn{font-size:19px;padding:12px 16px;min-width:92px}
 </style></head><body>
 <title>Michelle Fitness</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -708,12 +710,14 @@ function spUrl(u){u=String(u||"").trim();let m=u.match(/^spotify:(playlist|album
   m=u.match(/^https:\/\/open\.spotify\.com\/(?:intl-[a-z]+\/)?(playlist|album|artist|track)\/([A-Za-z0-9]+)/);return m?`https://open.spotify.com/${m[1]}/${m[2]}`:null;}
 function vSoundtrack(){
   const L=S.settings.playlists||[],E=S.st.edit,PRE=[{n:"ME",u:"https://open.spotify.com/playlist/1IyNB3o0sa2XQC3p0B7wTQ"}];
-  return `<section class="card st"><div class="row" style="align-items:center"><span class="label">🎧 Soundtrack</span><button class="txtbtn" data-act="stedit">${E?"Done":L.length?"Edit":"+ Add yours"}</button></div>
+  if(S.settings.stShut&&!E)return `<button class="btn ghost stbar" data-act="sttog" aria-expanded="false"><span>🎧 Soundtrack</span><span class="sttg">Show ▾</span></button>`;
+  return `<section class="card st"><div class="row" style="align-items:center;gap:8px"><span class="label" style="flex:1">🎧 Soundtrack</span><button class="txtbtn" data-act="stedit">${E?"Done":L.length?"Edit":"+ Add yours"}</button><button class="btn ghost small" data-act="sttog" aria-expanded="true">Hide ▴</button></div>
     <div class="stlist">${PRE.map(p=>`<div class="strow"><a class="stbtn" href="${esc(p.u)}" target="_blank" rel="noopener"><span>▶</span>${esc(p.n)}</a></div>`).join("")}${L.map((p,i)=>`<div class="strow"><a class="stbtn" href="${esc(p.u)}" target="_blank" rel="noopener"><span>▶</span>${esc(p.n)}</a>${E?`<button class="link" data-act="stdel" data-i="${i}" aria-label="Remove ${esc(p.n)}">✕</button>`:""}</div>`).join("")}</div>
     ${E?`<div class="note" style="color:var(--ink)">In Spotify, open a playlist, tap ⋯ → Share → <b>Copy link</b>, then paste it here.</div>
       <form class="fadd" data-form="playlist"><input class="f" id="stn" placeholder="Name, e.g. Heavy day" autocomplete="off"><input class="f" id="stu" placeholder="Paste Spotify link" autocomplete="off" style="grid-column:1/-1"><button class="btn" type="submit">Add playlist</button></form>`:""}
   </section>`;
 }
+document.addEventListener("click",ev=>{const b=ev.target.closest('[data-act="sttog"]');if(!b)return;S.settings.stShut=!S.settings.stShut;saveSettings();render();});
 document.addEventListener("click",ev=>{const b=ev.target.closest('[data-act="stedit"],[data-act="stdel"]');if(!b)return;
   if(b.dataset.act==="stedit"){S.st.edit=!S.st.edit;render();return;}
   const L=[...(S.settings.playlists||[])];L.splice(+b.dataset.i,1);S.settings.playlists=L;saveSettings();render();});
@@ -977,6 +981,17 @@ document.addEventListener("click",ev=>{if(!ev.target.closest('[data-act="nxreset
 
 /* ---------- Food tab: daily check-in ---------- */
 S.ciDate=todayKey();
+/* ---------- water ---------- */
+function waterGoal(){return n(S.settings.waterGoal)||Math.max(64,Math.round((n(S.settings.bw)||140)*0.6/8)*8);}
+function vWater(k,d){
+  const w=n(d?.water),g=waterGoal(),pct=Math.min(100,w/g*100),left=Math.max(0,g-w);
+  return `<div class="water"><div class="row" style="align-items:baseline"><b>💧 Water</b><span class="wtot">${w} <small>/ ${g} oz</small></span></div>
+    <div class="wbar"><div style="width:${pct}%"></div></div>
+    <div class="wbtns">${[8,16,24].map(oz=>`<button class="btn ghost" data-act="water" data-k="${k}" data-oz="${oz}">+${oz} oz</button>`).join("")}${w?`<button class="txtbtn" data-act="water" data-k="${k}" data-oz="-8">Undo 8 oz</button>`:""}</div>
+    <div class="note">${w>=g?"Goal hit. Nice.":`${left} oz to go. A glass is 8 oz, a water bottle 16.9 oz.`}</div></div>`;
+}
+document.addEventListener("click",ev=>{const b=ev.target.closest('[data-act="water"]');if(!b)return;const k=b.dataset.k||todayKey(),d=ensure(k);d.water=Math.max(0,n(d.water)+n(b.dataset.oz));if(!d.water)delete d.water;save(k);render();});
+
 function vCheckin(){
   if(S.ciDate>todayKey())S.ciDate=todayKey();
   const k=S.ciDate,d=day(k),b=burn(k),isT=k===todayKey();
@@ -985,6 +1000,7 @@ function vCheckin(){
     <label><span class="note">Steps</span><input class="f" id="m-steps" data-meta="steps" data-k="${k}" inputmode="numeric" value="${esc(d?.steps??"")}" placeholder="8000"></label>
     <label><span class="note">Walk / cardio (min)</span><input class="f" id="m-cardio" data-meta="cardio" data-k="${k}" inputmode="numeric" value="${esc(d?.cardio??"")}" placeholder="25"></label>
   </div>
+  ${vWater(k,d)}
   ${b&&b.total?`<div class="burn"><b>Burned in workouts: about ${b.total[0]}–${b.total[1]} kcal</b><span>${[b.lift?`lifting ${burnTxt(b.lift)}${b.liftMin?` (${b.liftMin} min)`:""}`:"",b.walk?`walk ${burnTxt(b.walk)}`:""].filter(Boolean).join(" · ")}. Estimate only, kept low on purpose. Already part of your daily burn, so don't eat it back.</span></div>`:""}
   </section>`;
 }
@@ -1469,8 +1485,14 @@ async function askCoach(text){
   while(turns.length&&turns[0].role!=="user")turns.shift();
   const input=[{role:"user",content:coachRules()},...turns];
   let reply="",err=null;
+  const PERM=["cancelled","not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed","tools_unavailable","refused","prompt_too_large","session_expired"];
+  const call=()=>S.sampleText(input,{tools:COACH_TOOLS,cache:false,signal:C.ctl.signal,...(img?{images:img}:{}),onText:({text})=>{C.live=text;const el=document.getElementById("livemsg");if(el){el.innerHTML=md(text);}}});
   try{
-    const r=await S.sampleText(input,{tools:COACH_TOOLS,cache:false,signal:C.ctl.signal,...(img?{images:img}:{}),onText:({text})=>{C.live=text;const el=document.getElementById("livemsg");if(el){el.innerHTML=md(text);}}});
+    let r;
+    for(let attempt=0;;attempt++){
+      try{r=await call();break;}
+      catch(e){if(attempt>=2||PERM.includes(e?.code)||e?.text||C.pendingDid.length)throw e;C.live="";await new Promise(res=>setTimeout(res,attempt?2000:700));}
+    }
     reply=r.text;if(r.truncated)reply+="\n\n(Cut short. Ask a narrower question.)";
   }catch(e){
     reply=e?.text||"";
