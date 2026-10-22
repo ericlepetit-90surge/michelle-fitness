@@ -2,6 +2,7 @@
 .finask{display:flex;flex-direction:column;gap:10px;text-align:center}.finask b{font-size:21px}
 .stbar{width:100%;display:flex;justify-content:space-between;align-items:center;font-size:19px}.stbar .sttg{color:var(--muted);font-size:17px}
 .water{margin-top:14px;padding:14px;border-radius:14px;background:color-mix(in srgb,#38bdf8 10%,transparent);border:1px solid color-mix(in srgb,#38bdf8 35%,transparent)}.water b{font-size:20px}.wtot{font:700 26px var(--display)}.wtot small{font-size:16px;color:var(--muted)}.wbar{height:12px;border-radius:8px;background:color-mix(in srgb,var(--ink) 12%,transparent);margin:10px 0;overflow:hidden}.wbar>div{height:100%;background:#38bdf8;border-radius:8px}.wbtns{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px}.wbtns .btn{font-size:19px;padding:12px 16px;min-width:92px}
+.ppq{border-top:1px solid var(--line);padding:12px 0;display:flex;flex-direction:column;gap:8px}.ppqtop{display:flex;gap:10px;align-items:flex-start}.ppqtop img{width:96px;height:128px;object-fit:cover;border-radius:10px;flex:0 0 auto}.ppx{font-size:22px;padding:4px 8px}
 </style></head><body>
 <title>Michelle Fitness</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1746,7 +1747,7 @@ document.addEventListener("change",ev=>{
 
 /* ---------- progress photos (stored as artifact assets, indexed in db "photos") ---------- */
 const POSES=["Front","Side","Back","Flex"];
-S.photos=[];S.assets=undefined;S.pp={file:null,url:"",pose:"Front",note:"",busy:false,msg:"",cmpPose:"Front",a:"",b:"",view:null,del:false};
+S.photos=[];S.assets=undefined;S.pp={q:[],busy:false,prog:"",msg:"",cmpPose:"Front",a:"",b:"",view:null,del:false};
 async function prepImage(file){
   // re-encode to JPEG (handles HEIC where the browser can decode it) and cap at 1600 px
   const url=URL.createObjectURL(file);
@@ -1764,7 +1765,7 @@ async function savePhoto(file,pose,note){
     const blob=await prepImage(file);
     let r;try{r=await S.assets.upload(blob,{type:"image/jpeg"});}
     catch(e){if(e?.code==="store_unavailable"){await new Promise(z=>setTimeout(z,1500));r=await S.assets.upload(blob,{type:"image/jpeg"});}else throw e;}
-    const t=todayKey(),w=S.days[t]?.bw||weightTrend().avg7||null,id="p"+Date.now().toString(36);
+    const t=todayKey(),w=S.days[t]?.bw||weightTrend().avg7||null,id="p"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
     const doc={asset:r.id,date:t,pose,created:new Date().toISOString(),...(w?{bw:n(w)}:{}),...(note?{note:String(note).slice(0,200)}:{})};
     await S.db.doc("photos/"+id).set(doc);
     S.photos=[{id,...doc},...S.photos.filter(p=>p.id!==id)];
@@ -1778,14 +1779,17 @@ function vPhotos(){
   if(S.assets===null)return `<section class="card"><span class="label">Progress photos</span><div class="note">Photo storage isn't available in this view. Open the app in the Claude app or at claude.ai.</div></section>`;
   const list=[...S.photos].sort((a,b)=>String(b.date+b.created).localeCompare(String(a.date+a.created)));
   let h=`<section class="card"><span class="label">Progress photos</span>`;
-  if(!P.file){
-    h+=`<label class="btn" for="ppfile" style="text-align:center">📷 Add a progress photo</label><input type="file" id="ppfile" accept="image/*" class="hidefile">
-      <div class="note">Same spot, same light, morning, every 4 weeks. Saved only on this phone with the date and your weight (not in the backup file).</div>`;
-  } else {
-    h+=`<img class="preview" src="${P.url}" alt="New progress photo" style="max-height:420px;object-fit:contain">
-      <span class="label">Pose</span><div class="chips">${POSES.map(x=>`<button class="chip" data-act="pppose" data-p="${x}" aria-pressed="${P.pose===x}">${x}</button>`).join("")}</div>
-      <input class="f" id="ppnote" placeholder="Note (optional), e.g. flexed, after workout" value="${esc(P.note)}">
-      <div class="row2b"><button class="btn" data-act="ppsave" ${P.busy?"disabled":""}>${P.busy?"Saving…":"Save photo"}</button><button class="btn ghost" data-act="ppcancel" ${P.busy?"disabled":""}>Cancel</button></div>`;
+  h+=`<label class="btn ${P.q.length?"ghost":""}" for="ppfile" style="text-align:center">📷 ${P.q.length?"Add more photos":"Add progress photos"}</label><input type="file" id="ppfile" accept="image/*" multiple class="hidefile">`;
+  if(!P.q.length)h+=`<div class="note">Same spot, same light, morning, every 4 weeks. Saved only on this phone with the date and your weight (not in the backup file).</div><div class="note">You can pick several photos at once.</div>`;
+  else{
+    h+=`<div class="note">Set the pose for each, add a note if you like, then save them all.</div>`+P.q.map((it,i)=>`<div class="ppq">
+      <div class="ppqtop"><img src="${it.url}" alt="Photo ${i+1}"><div style="flex:1;min-width:0">
+        <div class="chips">${POSES.map(x=>`<button class="chip sm" data-act="pppose" data-i="${i}" data-p="${x}" aria-pressed="${it.pose===x}">${x}</button>`).join("")}</div>
+        <div class="chips">${["Relaxed","Flexed"].map(x=>`<button class="chip sm" data-act="ppflex" data-i="${i}" data-p="${x}" aria-pressed="${it.flex===x}">${x}</button>`).join("")}</div>
+      </div>${P.busy?"":`<button class="link ppx" data-act="pprm" data-i="${i}" aria-label="Remove photo ${i+1}">✕</button>`}</div>
+      <input class="f" data-ppnote="${i}" placeholder="Note (optional), e.g. triceps flex" value="${esc(it.note)}">
+      ${it.err?`<div class="note" style="color:var(--warn)">${esc(it.err)}</div>`:""}${it.done?`<div class="note" style="color:var(--ink)">✓ Saved</div>`:""}
+    </div>`).join("")+`<div class="row2b"><button class="btn" data-act="ppsave" ${P.busy?"disabled":""}>${P.busy?esc(P.prog||"Saving…"):`Save ${P.q.length} photo${P.q.length>1?"s":""}`}</button><button class="btn ghost" data-act="ppcancel" ${P.busy?"disabled":""}>Cancel</button></div>`;
   }
   if(P.msg)h+=`<div class="note" style="color:var(--warn)">${esc(P.msg)}</div>`;
   // compare
@@ -1820,11 +1824,18 @@ function vPhotoView(){
 }
 document.addEventListener("click",async ev=>{
   const b=ev.target.closest("[data-act]");if(!b)return;const a=b.dataset.act,P=S.pp;
-  if(a==="pppose"){P.pose=b.dataset.p;render();}
-  else if(a==="ppcancel"){if(P.url)URL.revokeObjectURL(P.url);Object.assign(P,{file:null,url:"",note:"",msg:""});render();}
-  else if(a==="ppsave"){if(!P.file||P.busy)return;P.note=document.getElementById("ppnote")?.value.trim()||"";P.busy=true;P.msg="";render();
-    const ok=await savePhoto(P.file,P.pose,P.note);P.busy=false;
-    if(ok){if(P.url)URL.revokeObjectURL(P.url);Object.assign(P,{file:null,url:"",note:"",cmpPose:P.pose,a:"",b:""});toast("Photo saved");}
+  if(a==="pppose"){const it=P.q[+b.dataset.i];if(it){it.pose=b.dataset.p;render();}}
+  else if(a==="ppflex"){const it=P.q[+b.dataset.i];if(it){it.flex=it.flex===b.dataset.p?"":b.dataset.p;render();}}
+  else if(a==="pprm"){if(P.busy)return;const it=P.q[+b.dataset.i];if(it){URL.revokeObjectURL(it.url);P.q.splice(+b.dataset.i,1);render();}}
+  else if(a==="ppcancel"){P.q.forEach(it=>URL.revokeObjectURL(it.url));P.q=[];P.msg="";render();}
+  else if(a==="ppsave"){if(!P.q.length||P.busy)return;document.activeElement?.blur?.();P.busy=true;P.msg="";
+    const todo=P.q.filter(it=>!it.done);let ok=0;
+    for(let j=0;j<todo.length;j++){const it=todo[j];P.prog=`Saving ${j+1} of ${todo.length}…`;it.err="";render();
+      const note=[it.flex,(it.note||"").trim()].filter(Boolean).join(" · ");
+      if(await savePhoto(it.file,it.pose,note)){it.done=true;ok++;}else it.err="Didn't save. Tap Save to try again.";}
+    P.busy=false;P.prog="";const left=P.q.filter(it=>!it.done);P.q.filter(it=>it.done).forEach(it=>URL.revokeObjectURL(it.url));
+    if(!left.length){P.cmpPose=todo[0]?.pose||P.cmpPose;P.q=[];P.a="";P.b="";toast(`${ok} photo${ok===1?"":"s"} saved`);}
+    else{P.q=left;toast(`${ok} saved, ${left.length} didn't`);}
     render();}
   else if(a==="ppcmp"){P.cmpPose=b.dataset.p;P.a="";P.b="";render();}
   else if(a==="ppview"){P.view=b.dataset.id;P.del=false;renderOverlay();}
@@ -1839,10 +1850,11 @@ document.addEventListener("click",async ev=>{
 });
 document.addEventListener("change",ev=>{
   const el=ev.target;
-  if(el.id==="ppfile"){const f=el.files&&el.files[0];if(f){if(S.pp.url)URL.revokeObjectURL(S.pp.url);Object.assign(S.pp,{file:f,url:URL.createObjectURL(f),msg:""});el.blur();render();}}
+  if(el.id==="ppfile"){const fs=[...(el.files||[])].slice(0,12);if(fs.length){fs.forEach(f=>{const i=S.pp.q.length;S.pp.q.push({file:f,url:URL.createObjectURL(f),pose:["Front","Side","Back"][i%3],flex:"",note:"",err:"",done:false});});S.pp.msg="";el.value="";el.blur();render();}}
   else if(el.dataset.ppsel){S.pp[el.dataset.ppsel]=el.value;render();}
   else if(el.id==="chatimg"){const f=el.files&&el.files[0];if(f){if(S.chat.imgUrl)URL.revokeObjectURL(S.chat.imgUrl);S.chat.img=f;S.chat.imgUrl=URL.createObjectURL(f);el.blur();render();}}
 });
+document.addEventListener("input",ev=>{const i=ev.target.dataset?.ppnote;if(i!==undefined&&S.pp.q[+i])S.pp.q[+i].note=ev.target.value;});
 function renderOverlay(){let el=document.getElementById("ppov");if(!el){el=document.createElement("div");el.id="ppov";document.body.appendChild(el);}el.innerHTML=S.pp.view?vPhotoView():"";}
 
 /* ---------- custom program pasted from the coach (stored on this phone) ---------- */
