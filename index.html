@@ -742,8 +742,13 @@ function vStrength(){
 function target(e,beforeKey){
   const P=parsePlan(e.plan); if(!P) return null;
   const prev=lastFor(e.name,beforeKey), rng=P.lo===P.hi?`${P.lo}`:`${P.lo}–${P.hi}`;
-  if(!prev) return {kind:"new",w:"",text:`${P.n} sets × ${rng}`,why:`First time: pick a weight that leaves about 2 reps in the tank at ${P.hi}.`};
-  return suggest(e.name,prev.e.sets,P,rng);
+  if(!prev) return {kind:"new",w:"",text:`${P.n} sets × ${rng}`,why:EX[e.name]?.bw?`First time: bodyweight, controlled reps, stop about 2 reps short of failure.`:`First time: pick a weight that leaves about 2 reps in the tank at ${P.hi}.`};
+  const s=suggest(e.name,prev.e.sets,P,rng);
+  /* back after a layoff (12+ days): ease in at about 85% */
+  const gap=Math.round((new Date(beforeKey)-new Date(prev.k))/864e5),mx=Math.max(0,...prev.e.sets.map(x=>n(x.w)));
+  if(gap>=12&&mx>0){const nw=Math.max(5,Math.round(Math.min(n(s.w)||mx,mx*0.85)/5)*5);
+    return {kind:"down",w:nw,goal:P.lo,text:`${nw} × ${rng}, ${P.n} sets`,why:`Last done ${gap} days ago at ${mx}. Ease back in at ${nw} (about 85%) and own the reps; build back up next time.`};}
+  return s;
 }
 function suggest(name,sets,P,rng){
   rng=rng||(P.lo===P.hi?`${P.lo}`:`${P.lo}–${P.hi}`);
