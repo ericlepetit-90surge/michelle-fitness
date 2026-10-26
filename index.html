@@ -888,12 +888,16 @@ function recap(k){
   const done=(d.exercises||[]).filter(e=>e.sets?.length);
   done.forEach(e=>{
     const sets=e.sets,tp=topSet(sets),v=vol(sets),ar=avgRir(sets),P=parsePlan(e.plan);
-    const pe=pd?(pd.exercises||[]).find(x=>x.sets?.length&&(x.name===e.name||(e.swapOf&&x.name===e.swapOf)||(x.swapOf&&x.swapOf===e.name))):null;
+    /* compare with the last time this exact exercise was done (any day), never with a swapped-in different exercise */
+    const lf=lastFor(e.name,k),pe=lf?lf.e:null;
+    const cap1=ss=>Math.max(...ss.map(x=>n(x.w)>0?e1rm(n(x.w),n(x.r)+(x.rir!=null?Math.min(n(x.rir),4):1)):0));
     let label="Baseline",cls="hold";
     if(pe){const pt=topSet(pe.sets),pv=vol(pe.sets);
-      if(n(tp.w)>n(pt.w)||(n(tp.w)===n(pt.w)&&n(tp.r)>n(pt.r))||(v>pv*1.02&&n(tp.w)>=n(pt.w))){label="Progressed";cls="up";}
-      else if(n(tp.w)<n(pt.w)||v<pv*0.95){label="Regressed";cls="down";}
+      const c1=cap1(sets),c0=cap1(pe.sets),dc=c0>0?c1/c0-1:null;
+      if(dc!=null?(dc>0.02||(dc>=-0.02&&(n(tp.r)>n(pt.r)&&n(tp.w)>=n(pt.w)))):(n(tp.r)>n(pt.r)||v>pv*1.02)){label="Progressed";cls="up";}
+      else if(dc!=null?dc<-0.04:(n(tp.r)<n(pt.r)-1)){label="Regressed";cls="down";}
       else label="Held";
+      if(lf.k!==pk)label+=` (vs ${short(lf.k)})`;
       if(n(tp.w)>n(pt.w))out.good.push(`${e.name}: weight up to ${tp.w}`);
       else if(n(tp.w)===n(pt.w)&&n(tp.r)>n(pt.r))out.good.push(`${e.name}: +${n(tp.r)-n(pt.r)} reps at ${tp.w}`);
       if(cls==="down")out.bad.push(`${e.name}: less than last time (${setTxt(pt)} → ${setTxt(tp)})`);}
