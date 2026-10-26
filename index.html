@@ -891,11 +891,19 @@ function recap(k){
     /* compare with the last time this exact exercise was done (any day), never with a swapped-in different exercise */
     const lf=lastFor(e.name,k),pe=lf?lf.e:null;
     const cap1=ss=>Math.max(...ss.map(x=>n(x.w)>0?e1rm(n(x.w),n(x.r)+(x.rir!=null?Math.min(n(x.rir),4):1)):0));
-    let label="Baseline",cls="hold";
+    let label="Baseline",cls="hold",ds=null,dv=null;
     if(pe){const pt=topSet(pe.sets),pv=vol(pe.sets);
+      /* two signals: strength (best set, reps-in-reserve adjusted) and working-set volume (sets within 85% of the top weight) */
       const c1=cap1(sets),c0=cap1(pe.sets),dc=c0>0?c1/c0-1:null;
-      if(dc!=null?(dc>0.02||(dc>=-0.02&&(n(tp.r)>n(pt.r)&&n(tp.w)>=n(pt.w)))):(n(tp.r)>n(pt.r)||v>pv*1.02)){label="Progressed";cls="up";}
-      else if(dc!=null?dc<-0.04:(n(tp.r)<n(pt.r)-1)){label="Regressed";cls="down";}
+      const wv=ss=>{const m=Math.max(...ss.map(x=>n(x.w)));return m>0?ss.filter(x=>n(x.w)>=m*0.85).reduce((a,x)=>a+n(x.w)*n(x.r),0):ss.reduce((a,x)=>a+n(x.r),0);};
+      const v1=wv(sets),v0=wv(pe.sets);dv=v0>0?v1/v0-1:null;ds=dc;
+      const sUp=dc!=null?dc>0.02:false,sDn=dc!=null?dc<-0.04:false,vUp=dv!=null&&dv>0.05,vDn=dv!=null&&dv<-0.05;
+      if(sUp&&!vDn){label="Progressed";cls="up";}
+      else if(sUp&&vDn){label="Stronger, less volume";cls="up";}
+      else if(sDn&&vUp){label="Mixed";cls="hold";}
+      else if(sDn||(dc==null&&vDn)){label="Regressed";cls="down";}
+      else if(vUp){label="Progressed (volume)";cls="up";}
+      else if(vDn){label="Held (less volume)";cls="hold";}
       else label="Held";
       if(lf.k!==pk)label+=` (vs ${short(lf.k)})`;
       if(n(tp.w)>n(pt.w))out.good.push(`${e.name}: weight up to ${tp.w}`);
@@ -908,7 +916,7 @@ function recap(k){
       if(sets.length<P.n)out.bad.push(`${e.name}: ${sets.length} of ${P.n} sets`);}
     if(ar!=null&&ar>=3)out.bad.push(`${e.name}: ${rirTxt(Math.round(ar))} reps left on average, too light`);
     if(sets.length>=2&&sets.every(s=>s.rir===0)&&HEAVY.test(e.name))out.bad.push(`${e.name}: every set to failure, too heavy for a big lift`);
-    out.rows.push({name:e.name,label,cls,sets:sets.length,top:tp,vol:Math.round(v),ar,prev:pe?topSet(pe.sets):null});
+    out.rows.push({name:e.name,label,cls,sets:sets.length,top:tp,vol:Math.round(v),ar,ds,dv,prev:pe?topSet(pe.sets):null});
     if(P){const s=suggest(e.name,sets,P);out.next.push({name:e.name,text:s.text,kind:s.kind});}
   });
   // only what was actually in that day's workout counts as skipped, never the current plan
@@ -923,7 +931,7 @@ function vRecap(k){
   return `<section class="card recap"><div class="row"><span class="label">Workout recap · ${esc(d.session||"Workout")}</span><span class="note">${short(k)}</span></div>
     ${R.pk?`<div class="note">Compared with your last ${esc(d.session)} on ${short(R.pk)}.</div>`:`<div class="note" style="color:var(--ink)">First time logged, this is your baseline.</div>`}
     <div class="stats"><div class="stat"><div class="v">${R.sets}</div><div class="k">sets${R.psets!=null?` (last ${R.psets})`:""}</div></div><div class="stat"><div class="v">${R.vol.toLocaleString()}</div><div class="k">lb volume${dv!=null?` (${dv>=0?"+":""}${dv}%)`:""}</div></div><div class="stat"><div class="v">${dur!=null?dur:"—"}</div><div class="k">minutes</div></div></div>
-    <div class="food">${R.rows.map(r=>`<div class="it" style="grid-template-columns:1fr auto"><span><b>${esc(r.name)}</b><small class="nt">${r.sets} sets · top ${esc(setTxt(r.top))}${r.prev?` · last ${esc(setTxt(r.prev))}`:""}</small></span><span class="badge ${r.cls==="up"?"":r.cls==="down"?"down":"hold"}">${r.label}</span></div>`).join("")}</div>
+    <div class="food">${R.rows.map(r=>`<div class="it" style="grid-template-columns:1fr auto"><span><b>${esc(r.name)}</b><small class="nt">${r.sets} sets · top ${esc(setTxt(r.top))}${r.prev?` · last ${esc(setTxt(r.prev))}`:""}${r.ds!=null||r.dv!=null?`<br>${r.ds!=null?`Strength ${r.ds>=0?"+":""}${Math.round(r.ds*100)}%`:""}${r.ds!=null&&r.dv!=null?" · ":""}${r.dv!=null?`Volume ${r.dv>=0?"+":""}${Math.round(r.dv*100)}%`:""}`:""}</small></span><span class="badge ${r.cls==="up"?"":r.cls==="down"?"down":"hold"}">${r.label}</span></div>`).join("")}</div>
     ${R.good.length?`<div class="rc good"><span class="label">What was good</span><ul>${R.good.slice(0,6).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:""}
     ${R.bad.length?`<div class="rc bad"><span class="label">What needs to be better</span><ul>${R.bad.slice(0,6).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:""}
     ${R.next.length?`<div class="rc"><span class="label">Next time</span><ul>${R.next.map(x=>`<li><b>${esc(x.name)}</b>: ${esc(x.text)}</li>`).join("")}</ul></div>`:""}
