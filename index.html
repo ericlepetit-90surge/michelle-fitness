@@ -3,6 +3,7 @@
 .stbar{width:100%;display:flex;justify-content:space-between;align-items:center;font-size:19px}.stbar .sttg{color:var(--muted);font-size:17px}
 .water{margin-top:14px;padding:14px;border-radius:14px;background:color-mix(in srgb,#38bdf8 10%,transparent);border:1px solid color-mix(in srgb,#38bdf8 35%,transparent)}.water b{font-size:20px}.wtot{font:700 26px var(--display)}.wtot small{font-size:16px;color:var(--muted)}.wbar{height:12px;border-radius:8px;background:color-mix(in srgb,var(--ink) 12%,transparent);margin:10px 0;overflow:hidden}.wbar>div{height:100%;background:#38bdf8;border-radius:8px}.wbtns{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px}.wbtns .btn{font-size:19px;padding:12px 16px;min-width:92px}
 .ppq{border-top:1px solid var(--line);padding:12px 0;display:flex;flex-direction:column;gap:8px}.ppqtop{display:flex;gap:10px;align-items:flex-start}.ppqtop img{width:96px;height:128px;object-fit:cover;border-radius:10px;flex:0 0 auto}.ppx{font-size:22px;padding:4px 8px}
+.blist{display:flex;flex-direction:column;margin-top:8px}.brow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}.brow b{font-size:18px;display:block}.brow small{display:block;color:var(--muted);font-size:15px;margin-top:2px}
 </style></head><body>
 <title>Michelle Fitness</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -542,6 +543,72 @@ const EX = {
   growth:["Squeeze glutes the whole time","Add 5–10 s when easy"],safe:["Hips level, no sagging","Breathe steadily"],
   tip:"Squeeze your glutes the whole time",why:"Log seconds held in the reps box.",tags:[],
   alts:[["Dead bug","Floor","Low back down, opposite arm and leg"]]},
+ "Flat DB press":{m:"chest",rest:105,q:"flat dumbbell bench press form",cue:"Elbows 45°, lower to a deep chest stretch, press up and in",
+  grip:"Overhand, slight inward turn, full grip",path:"Lie flat, feet planted, shoulder blades pinched; lower DBs beside mid-chest; press up and slightly together",
+  growth:["2–3 s lowering","Full stretch at the bottom","Stop 1–2 reps short of failure"],safe:["Shoulder blades back and down","Don't flare elbows to 90°","Kick the DBs up with your knees to start"],
+  tip:"Deep stretch, elbows 45°",why:"Dumbbells give a deeper stretch than a bar and let each side work on its own.",tags:["Slow lowering","Pause at stretch"],
+  alts:[["Push-up","Floor","Hands just outside shoulders"],["Chest press machine","Machine","Handles at mid-chest"]]},
+ "DB fly":{m:"chest",rest:75,q:"dumbbell chest fly proper form",cue:"Soft elbows, open wide to a stretch, hug a tree back up",
+  grip:"Neutral (palms facing), light grip",path:"Flat or low incline; arms slightly bent; lower out wide until you feel the chest stretch; squeeze back up",
+  growth:["Slow, deep stretch","Lighter than you think","10–15 controlled reps"],safe:["Keep the elbow bend fixed","Stop at a comfortable stretch, not lower"],
+  tip:"Stretch, then squeeze",why:"Trains the chest in the stretched position, where it grows best.",tags:["Pause at stretch","Slow lowering"],
+  alts:[["Cable chest fly","Two cables","Same arc"],["Flat DB press","Dumbbells","Press instead of fly"]]},
+ "Push-up":{bw:true,m:"chest",rest:75,q:"push up proper form",cue:"Body straight, hands just outside shoulders, chest to the floor",
+  grip:"Hands flat, fingers forward, just outside shoulders",path:"Plank position; lower until your chest nearly touches; push back up without sagging",
+  growth:["Slow lowering","Feet on the bench to make it harder","Stop 1–2 reps short of failure"],safe:["Glutes tight, no sagging hips","Elbows 45°, not flared"],
+  tip:"Straight line head to heels",why:"Chest and triceps anywhere, no equipment.",tags:["Slow lowering"],alts:[["Flat DB press","Dumbbells, flat bench","Elbows 45°"]]},
+ "Single-arm DB row":{m:"back",rest:75,q:"single arm dumbbell row form",cue:"Knee and hand on the bench, pull the DB to your hip",
+  grip:"Neutral (palm facing in), full grip",path:"Flat back, other hand and knee on the bench; pull the elbow back toward your hip; lower to a full stretch",
+  growth:["Full stretch at the bottom","Pause 1 s at the top","Elbow to the hip, not the shoulder"],safe:["Back flat, no twisting","Don't yank with your lower back"],
+  tip:"Elbow to the hip",why:"Builds lat width and back thickness one side at a time.",tags:["Pause at stretch"],alts:[["Chest-supported DB row","Incline bench, 2 DBs","Chest on the pad"],["Single-arm cable row","Cable","Elbow back to the hip"]]},
+ "Chest-supported DB row":{m:"back",rest:90,q:"chest supported dumbbell row incline bench",cue:"Chest on an incline bench, row both DBs to your ribs",
+  grip:"Neutral or overhand, full grip",path:"Bench at about 30°, chest on the pad; let DBs hang; row to your lower ribs; squeeze shoulder blades; lower slowly",
+  growth:["Pause 1 s squeezed","Full hang at the bottom"],safe:["Chest stays on the pad","No shrugging"],
+  tip:"Squeeze, then slow down",why:"Back thickness with zero lower-back strain.",tags:["Pause at stretch","Slow lowering"],alts:[["Single-arm DB row","Bench, 1 DB","Knee and hand on the bench"],["Chest-supported row","Machine","Chest on the pad"]]},
+ "DB pullover":{m:"back",rest:75,q:"dumbbell pullover lats form",cue:"Lie across the bench, lower the DB behind your head, pull it back over your chest",
+  grip:"Both hands cupping one end of the DB",path:"Upper back on the bench; arms long with a slight bend; lower behind your head to a stretch; pull back to above your chest",
+  growth:["Big stretch at the bottom","Think elbows toward hips"],safe:["Ribs down","Stop at a comfortable stretch"],
+  tip:"Stretch the lats",why:"Hits lats and serratus without a cable or bar.",tags:["Pause at stretch"],alts:[["Lat pulldown","Cable","Elbows to back pockets"]]},
+ "Chest-supported DB rear raise":{m:"rdelt",rest:60,q:"incline bench reverse dumbbell fly rear delt",cue:"Chest on an incline bench, raise the DBs out wide",
+  grip:"Neutral or overhand, light grip",path:"Chest on a 30° bench; arms hang; raise out to the sides to shoulder height; lower slowly",
+  growth:["Light weight, 12–20 reps","Pause 1 s at the top"],safe:["No swinging","Shoulders down, away from ears"],
+  tip:"Light and strict",why:"Rear delts make shoulders look wide and 3D from the side and back.",tags:["Slow lowering"],alts:[["Rear delt fly","Machine","Sweep arms wide"],["Face pull","Cable, rope","Pull to your face"]]},
+ "DB overhead extension (one dumbbell)":{m:"triceps",rest:75,q:"seated dumbbell overhead triceps extension form",cue:"Both hands on one DB, lower it behind your head, extend up",
+  grip:"Both hands cupping the top plate of the DB",path:"Sit upright; DB overhead; elbows point forward; lower behind your head to a deep stretch; extend fully",
+  growth:["Deep stretch behind the head","2 s lowering","10–15 reps"],safe:["Ribs down, don't arch","Elbows stay pointed forward"],
+  tip:"Deep stretch, elbows forward",why:"Overhead work stretches the triceps long head, the part that adds arm size from the side.",tags:["Slow lowering","Pause at stretch"],alts:[["Overhead rope extension","Cable, rope","Elbows forward"],["DB skull crusher","Bench, 2 DBs","Lower beside your head"]]},
+ "DB kickback":{m:"triceps",rest:60,q:"dumbbell triceps kickback form",cue:"Upper arm parallel to the floor, straighten the elbow, squeeze",
+  grip:"Neutral, light grip",path:"Hinge with a hand on the bench; upper arm tight to your side and parallel to the floor; extend the elbow fully; pause; lower",
+  growth:["Pause 1 s at lockout","Light weight, strict"],safe:["Upper arm stays still","No swinging"],
+  tip:"Lock out and squeeze",why:"Hard contraction for the triceps with a light DB.",tags:["Slow lowering"],alts:[["Rope pushdown","Cable, rope","Elbows pinned"]]},
+ "DB skull crusher":{m:"triceps",rest:75,q:"dumbbell skull crusher lying triceps extension",cue:"Lie on the bench, lower DBs beside your head, extend up",
+  grip:"Neutral (palms facing)",path:"Lie flat; arms up, slightly back toward your head; bend only the elbows to lower DBs beside your head; extend",
+  growth:["2 s lowering","Arms angled slightly back for more stretch"],safe:["Elbows stay narrow","Go lighter if elbows ache"],
+  tip:"Only the elbows move",why:"Heavy triceps work with just dumbbells and a bench.",tags:["Slow lowering"],alts:[["DB overhead extension (one dumbbell)","Bench, 1 DB","Elbows forward"]]},
+ "Concentration curl":{m:"biceps",rest:60,q:"concentration curl form",cue:"Elbow braced on your inner thigh, curl and squeeze",
+  grip:"Supinated (underhand), full grip",path:"Sit on the bench; elbow against the inside of your thigh; curl up turning the pinky up; lower to a full stretch",
+  growth:["Pause 1 s at the top","Full stretch at the bottom"],safe:["No swinging","Upper arm stays still"],
+  tip:"Squeeze at the top",why:"Strict biceps peak work.",tags:["Slow lowering"],alts:[["DB curl","Dumbbells","Underhand"],["Hammer curl","Dumbbells","Thumbs up"]]},
+ "DB Romanian deadlift":{m:"hams",rest:105,q:"dumbbell romanian deadlift form",cue:"Soft knees, push hips back, DBs slide down your thighs",
+  grip:"Overhand or neutral, DBs in front of thighs",path:"Stand tall; push hips back with a flat back; lower DBs to mid-shin or until hamstrings stretch; drive hips forward",
+  growth:["3 s lowering","Big hamstring stretch"],safe:["Flat back, no rounding","Knees stay soft, not bending more"],
+  tip:"Hips back, flat back",why:"Hamstrings and glutes with almost no knee bend. Knee-friendly.",tags:["Slow lowering","Pause at stretch"],alts:[["Romanian deadlift","Barbell","Same hinge"]]},
+ "DB hip thrust":{m:"glutes",rest:90,q:"dumbbell hip thrust bench form",cue:"Upper back on the bench, DB on your hips, drive up and squeeze",
+  grip:"Hands hold the DB on your hip crease",path:"Upper back on the bench edge; feet flat; drive hips up until thighs and torso are flat; squeeze 1 s; lower",
+  growth:["Pause 1 s at the top","12–15 reps"],safe:["Chin tucked, ribs down","Pad the DB with a towel"],
+  tip:"Squeeze at the top",why:"Glutes with a stable knee. Knee-friendly.",tags:["Pause at stretch"],alts:[["Hip thrust","Barbell","Same path"]]},
+ "DB calf raise":{m:"calves",rest:60,q:"single leg dumbbell calf raise on step",cue:"One foot on a step, DB in the same hand, deep stretch, rise high",
+  grip:"DB in one hand, other hand on the wall",path:"Ball of one foot on a step; lower the heel to a deep stretch; pause; rise as high as possible",
+  growth:["Pause 2 s at the bottom","12–15 per leg"],safe:["Knee soft and still","Slow to protect the Achilles"],
+  tip:"Pause in the stretch",why:"Calves at home, with the knee still.",tags:["Pause at stretch"],alts:[["Seated calf raise","Machine","Pause at the bottom"]]},
+ "Goblet squat":{m:"quads",rest:105,q:"goblet squat form",cue:"DB at your chest, sit between your heels, chest up",
+  grip:"Both hands cupping the top of one DB at your chest",path:"Feet shoulder-width; sit down between your heels; knees track over toes; stand up",
+  growth:["3 s lowering","Pause at the bottom"],safe:["Loads the knee: skip while it heals","Heels down"],
+  tip:"Chest up, heels down",why:"Quads and glutes with one dumbbell.",tags:["Slow lowering"],alts:[["Leg press","Machine","Full range"]]},
+ "Dead bug":{bw:true,m:"abs",rest:45,q:"dead bug exercise form",cue:"Back flat on the floor, lower opposite arm and leg slowly",
+  grip:"Arms straight up",path:"Lie on your back, knees at 90°; press your lower back down; slowly extend one arm and the opposite leg; return; switch",
+  growth:["Slow, 3 s each way","Hold a light DB to progress"],safe:["Lower back stays glued down"],
+  tip:"Lower back stays down",why:"Deep core and lower abs with zero equipment.",tags:["Slow lowering"],alts:[["Reverse crunch","Bench","Curl hips up"]]},
  "Incline walk":{setup:["Get on the treadmill, start at about 2.5–3 mph with 0 incline.", "Raise the incline to 6–12 over the first minute.", "Don't hold the rails; slow down instead. Clip the safety key to your clothes."],m:"cardio",rest:0,q:"incline treadmill walk",cue:"Incline 8–12, brisk pace, don't hold the rails",
   grip:"Hands free, arms swinging",path:"Walk tall at an incline; push through the whole foot",growth:["25 min at a pace you can talk","Burns fat without hurting lifting recovery"],safe:["No holding the rails","Lower the incline if your calves or back ache"],
   tip:"Brisk, hands off the rails",why:"Low-stress fat burning that doesn't hurt recovery.",tags:[],alts:[["Bike","Stationary bike","Steady moderate pace"],["Stairmaster","Stair machine","Slow steady pace"]]}
@@ -563,7 +630,42 @@ let SC = {"Glutes A":"#ff6fae","Glutes B":"#b69cff","Glutes C":"#2dd4bf","Rest":
 const APP_URL = "";
 const LOG_CHAT_URL = "https://claude.ai/new?q=" + encodeURIComponent("Log this meal (photo attached) to my gym log: " + APP_URL + "\nEstimate the calories and protein, then add it to today's food.");
 let WEEK = {1:"Glutes A",3:"Glutes B",5:"Glutes C"};
-let SESSIONS = [...Object.keys(PROGRAM),"Rest"];
+let SESSIONS = [...Object.keys(PROGRAM),"Custom","Rest"];
+const sessLabel=s=>s==="Custom"?"Build my own":s;
+/* ---------- build-your-own: equipment and muscle groups ---------- */
+const HOME_DB=["Incline DB press","Flat DB press","DB fly","Single-arm DB row","Chest-supported DB row","DB pullover","Chest-supported DB rear raise","DB overhead extension (one dumbbell)","DB kickback","DB skull crusher","Concentration curl","DB curl","Hammer curl","Incline DB curl","Lateral raise","Arnold press","Seated DB shoulder press","Front raise (dumbbell)","DB Romanian deadlift","DB hip thrust","DB calf raise","Goblet squat","Bulgarian split squat","Farmer's carry"];
+const HOME_BW=["Push-up","Decline crunch","Reverse crunch","Dead bug"];
+function eqOf(nm){if(HOME_DB.includes(nm))return "db";if(HOME_BW.includes(nm))return "home";const x=EX[nm]||{};
+  if(/barbell|^Squat$|Deadlift|^Romanian deadlift$|^Hip thrust$|Trap bar/i.test(nm))return "barbell";
+  if(/cable|rope|pulldown|Face pull|pushdown|Pallof|woodchopper/i.test(nm))return "cable";
+  if(x.bw)return "bw";return "machine";}
+const EQUIPS=[["all","Everything"],["home","Dumbbells + bench"],["cable","Cables"],["machine","Machines"],["barbell","Barbell"],["bw","Bodyweight"]];
+const eqOk=(nm,f)=>f==="all"||(f==="home"?["db","home"].includes(eqOf(nm)):eqOf(nm)===f||(f==="bw"&&eqOf(nm)==="home"));
+const MGROUPS=[["chest","Chest",["chest"]],["back","Back",["back"]],["shoulders","Shoulders",["sdelt","fdelt","rdelt"]],["arms","Arms",["biceps","triceps"]],["legs","Legs",["quads","hams","glutes","calves"]],["abs","Abs",["abs"]],["cardio","Cardio",["cardio"]]];
+const KNEE_LOAD=/squat|leg press|leg extension|lunge|step-up/i;
+function defaultPlan(nm){if(PLAN_OF[nm])return PLAN_OF[nm].plan;const m=(EX[nm]||{}).m;if(m==="cardio")return "20 min";
+  return ["sdelt","fdelt","rdelt","biceps","triceps","calves","abs"].includes(m)||/fly|raise|curl|kickback|extension/i.test(nm)?"3×10–15":"3×8–12";}
+function vBuilder(k,d){const f=S.settings.equip||"all",g=S.bmus||"",ex=d?.exercises||[],have=new Set(ex.map(e=>e.name)),wk=bWeekSets(k);
+  const pool=Object.keys(EX).filter(nm=>eqOk(nm,f));
+  const grp=MGROUPS.filter(([id,,ms])=>pool.some(nm=>ms.includes(EX[nm].m)));
+  const cnt=ms=>ms.reduce((a,m)=>a+(wk[m]||0),0);
+  let h=`<section class="card"><span class="label">${d?.session==="Custom"?"Build your workout":"Add an exercise"}</span>
+    <div class="note">Pick your equipment, then a muscle, and tap <b>+ Add</b> as you go. Each exercise keeps its own history and targets.</div>
+    <span class="label" style="margin-top:6px">Equipment</span><div class="chips">${EQUIPS.map(([id,l])=>`<button class="chip sm" data-act="bequip" data-e="${id}" aria-pressed="${f===id}">${l}</button>`).join("")}</div>
+    <span class="label" style="margin-top:6px">Muscle <span class="note" style="text-transform:none;letter-spacing:0">(sets this week)</span></span><div class="chips">${grp.map(([id,l,ms])=>`<button class="chip sm" data-act="bmus" data-g="${id}" aria-pressed="${g===id}">${l}${id!=="cardio"?` · ${cnt(ms)}`:""}</button>`).join("")}</div>`;
+  if(g){const ms=(MGROUPS.find(x=>x[0]===g)||[])[2]||[];
+    const list=pool.filter(nm=>ms.includes(EX[nm].m)).sort((a,b)=>(lastFor(b,k)?1:0)-(lastFor(a,k)?1:0)||a.localeCompare(b));
+    h+=`<div class="blist">${list.map(nm=>{const lf=lastFor(nm,k),tp=lf?topSet(lf.e.sets):null;
+      return `<div class="brow"><div><b>${esc(nm)}</b><small>${esc(MUSCLE[EX[nm].m]||"")} · ${esc(defaultPlan(nm))}${tp?` · last ${esc(setTxt(tp))} (${short(lf.k)})`:" · new"}</small>${KNEE_LOAD.test(nm)?`<small style="color:var(--warn)">Loads the knee: skip while it heals</small>`:""}</div>${have.has(nm)?`<span class="badge">Added</span>`:`<button class="btn small" data-act="badd" data-n="${esc(nm)}">+ Add</button>`}</div>`;}).join("")||`<div class="note">Nothing for this muscle with that equipment.</div>`}</div>`;}
+  else h+=`<div class="note" style="margin-top:4px">Tap a muscle to see the exercises.</div>`;
+  const names=[...new Set([...Object.keys(PLAN_OF),...Object.keys(EX),...sortedKeys().flatMap(x=>(S.days[x].exercises||[]).map(e=>e.name))])].sort();
+  h+=`<span class="label" style="margin-top:10px">Not listed? Type it</span><form class="add" data-form="ex" style="grid-template-columns:1fr auto">
+      <input class="f" id="newex" name="name" list="exnames" placeholder="e.g. Hammer curl" autocomplete="off">
+      <button class="btn" type="submit">Add</button>
+    </form><datalist id="exnames">${names.map(x=>`<option value="${esc(x)}">`).join("")}</datalist></section>`;
+  return h;}
+function bWeekSets(k){const tt=new Date(k+"T12:00:00"),mon=addDays(k,-((tt.getDay()+6)%7)),cnt={};
+  for(let i=0;i<7;i++){const x=addDays(mon,i);if(x>k)break;(S.days[x]?.exercises||[]).forEach(e=>{const m=(EX[e.swapOf||e.name]||EX[e.name]||{}).m;if(m)cnt[m]=(cnt[m]||0)+(e.sets||[]).length;});}return cnt;}
 let PLAN_OF = {}; Object.values(PROGRAM).forEach(p=>p.ex.forEach(([n,pl,note,pick])=>{ (pick||[n]).forEach(x=>{ if(!PLAN_OF[x]) PLAN_OF[x]={plan:pl,note}; }); }));
 
 const S = {days:{}, settings:{kcal:1800, protein:110, burnOn:false}, date:todayKey(), tab:"progress", mode:"loading", db:null, dirty:new Set(), pick:null, reopen:{}, sample:null, sampleText:null, canPhoto:false, look:{q:"",status:"idle",food:null,sel:0,qty:1,msg:"",ctl:null,src:"",edit:false}, foods:{}, photo:{file:null,url:"",status:"idle",items:null,note:"",msg:"",ctl:null}};
@@ -952,13 +1054,13 @@ function vToday(){
     return h;
   }
   h+=`<section class="card"><div class="row"><span class="label">Session</span><span class="note">Planned: ${esc(planned)}</span></div>
-    ${(()=>{const np=S.settings.nextPick,sel=cur||(np&&np.date===k&&PROGRAM[np.sess]?np.sess:planned);if(cur&&S.chgSess!==S.date)return `<div class="row" style="align-items:center;flex-wrap:wrap;gap:8px 14px"><b style="font:700 24px var(--display);text-transform:uppercase;letter-spacing:.03em">${esc(cur)}</b><button class="txtbtn" data-act="chgsess" style="font-size:17px">Change workout</button></div>`;return `<div class="sesspick"><select class="f" data-sess="1" aria-label="Session">${SESSIONS.map(s=>`<option value="${esc(s)}"${s===sel?" selected":""}>${esc(s)}${s===planned?" (planned)":""}</option>`).join("")}</select>${!cur&&sel!=="Rest"?`<button class="btn" data-act="session" data-s="${esc(sel)}">Start ${esc(sel)}</button>`:""}</div>`;})()}
+    ${(()=>{const np=S.settings.nextPick,sel=cur||(np&&np.date===k&&PROGRAM[np.sess]?np.sess:planned);if(cur&&S.chgSess!==S.date)return `<div class="row" style="align-items:center;flex-wrap:wrap;gap:8px 14px"><b style="font:700 24px var(--display);text-transform:uppercase;letter-spacing:.03em">${esc(sessLabel(cur))}</b><button class="txtbtn" data-act="chgsess" style="font-size:17px">Change workout</button></div>`;return `<div class="sesspick"><select class="f" data-sess="1" aria-label="Session">${SESSIONS.map(s=>`<option value="${esc(s)}"${s===sel?" selected":""}>${esc(sessLabel(s))}${s===planned?" (planned)":""}</option>`).join("")}</select>${!cur&&sel!=="Rest"?`<button class="btn" data-act="session" data-s="${esc(sel)}">Start ${esc(sessLabel(sel))}</button>`:""}</div>`;})()}
     ${cur&&PROGRAM[cur]?`<div class="note">${esc(PROGRAM[cur].focus)}</div>`:""}
     ${k===todayKey()&&!hasSets?`<button class="txtbtn" data-tab="next">See your next workout with targets →</button>`:""}
     ${ex.length&&k===todayKey()?`<div class="row" style="align-items:center;flex-wrap:wrap">${d.start?(d.end?`<span class="note" style="color:var(--ink)">Workout time: <input class="f mini" data-dur="1" inputmode="numeric" value="${duration(d)}" aria-label="Minutes"> min</span>`:`<span class="note" style="color:var(--ink)">⏱ Timer running</span>`):`<button class="btn ghost small" data-act="sstart">Start workout timer</button>`}</div>`:""}
   </section>`;
   if(!ex.length){
-    h+=`<section class="card empty">${cur==="Rest"?"Rest day. Get your steps in.":`No exercises yet. Tap <b>${esc(planned==="Rest"?"a session":planned)}</b> above to load the plan, or add one below.`}</section>`;
+    h+=`<section class="card empty">${cur==="Rest"?"Rest day. Get your steps in.":`${cur==="Custom"?"Empty workout. Add exercises below as you go.":`No exercises yet. Tap <b>${esc(planned==="Rest"?"a session":planned)}</b> above to load the plan, or build your own below.`}`}</section>`;
   } else {
     const order=[...ex.keys()].filter(i=>!ex[i].done).concat([...ex.keys()].filter(i=>ex[i].done).sort((a,b)=>n(ex[a].doneAt)-n(ex[b].doneAt)));
     order.forEach(i=>{h+=exCard(ex[i],i,k,false);});
@@ -966,12 +1068,7 @@ function vToday(){
   if(hasSets){const need=ex.filter(e=>parsePlan(e.plan)&&e.name!=="Incline walk"),allSets=need.every(e=>(e.sets||[]).length>=parsePlan(e.plan).n);
     const planN=need.reduce((a,e)=>a+parsePlan(e.plan).n,0),doneN=need.reduce((a,e)=>a+Math.min((e.sets||[]).length,parsePlan(e.plan).n),0);
     h+=allSets?`<button class="btn finish" data-act="finish">Finish workout</button>`:S.finAsk===k?`<div class="card finask"><b>Finish with ${doneN} of ${planN} sets?</b><span class="note">Only the sets you logged are saved. Skipped sets don't count as misses.</span><div class="row2b"><button class="btn" data-act="finish">Yes, finish</button><button class="btn ghost" data-act="fincancel">Keep going</button></div></div>`:`<button class="btn ghost finish" data-act="finask">Finish workout (${doneN} of ${planN} sets)</button>`;}
-  const names=[...new Set([...Object.keys(PLAN_OF),...Object.keys(EX),...sortedKeys().flatMap(x=>(S.days[x].exercises||[]).map(e=>e.name))])].sort();
-  h+=`<section class="card"><span class="label">Add an exercise</span>
-    <form class="add" data-form="ex" style="grid-template-columns:1fr auto">
-      <input class="f" id="newex" name="name" list="exnames" placeholder="e.g. Hammer curl" autocomplete="off">
-      <button class="btn" type="submit">Add</button>
-    </form><datalist id="exnames">${names.map(x=>`<option value="${esc(x)}">`).join("")}</datalist></section>`;
+  h+=vBuilder(k,d);
   return h;
 }
 function vNext(){
@@ -1593,6 +1690,9 @@ document.addEventListener("click",e=>{
   if(a==="prev"){S.date=addDays(k,-1);render();}
   else if(a==="next"){S.date=addDays(k,1);render();}
   else if(a==="session"){pickSession(k,b.dataset.s);}
+  else if(a==="bequip"){S.settings.equip=b.dataset.e;saveSettings();render();}
+  else if(a==="bmus"){S.bmus=S.bmus===b.dataset.g?"":b.dataset.g;render();}
+  else if(a==="badd"){const nm=b.dataset.n,d=ensure(k);if(d.exercises.some(e=>e.name===nm))return;d.exercises.push({name:nm,plan:defaultPlan(nm),...(PLAN_OF[nm]?.note?{note:PLAN_OF[nm].note}:{}),sets:[]});if(!d.session)d.session="Custom";save(k);render();toast(nm+" added");}
   else if(a==="delex"){const d=ensure(k);d.exercises.splice(+b.dataset.i,1);S.entry={};S.ui={form:{},swap:{},tip:{},more:{}};save(k);render();}
   else if(a==="delset"){const d=ensure(k);d.exercises[+b.dataset.i].sets.splice(+b.dataset.j,1);save(k);render();}
   else if(a==="delfood"){const d=ensure(k);d.food.splice(+b.dataset.i,1);save(k);render();}
@@ -1662,7 +1762,7 @@ document.addEventListener("submit",e=>{
     addSet(+f.dataset.i);
   } else if(f.dataset.form==="ex"){
     const name=String(fd.get("name")).trim();if(!name)return;
-    const pl=PLAN_OF[name];d.exercises.push({name,...(pl?{plan:pl.plan}:{}),sets:[]});
+    d.exercises.push({name,plan:defaultPlan(name),sets:[]});
     if(!d.session) d.session="Custom";
     save(k);document.activeElement.blur();render();
   } else if(f.dataset.form==="look"){
@@ -1696,6 +1796,7 @@ function pickSession(k,s){
   S.chgSess=null;const d=ensure(k);d.session=s;S.entry={};S.ui={form:{},swap:{},tip:{},more:{}};
   if(PROGRAM[s]&&!d.exercises.some(x=>x.sets?.length)){loadSession(d,s);}
   if(s==="Rest"&&!d.exercises.some(x=>x.sets?.length)) d.exercises=[];
+  if(s==="Custom"){d.exercises=d.exercises.filter(x=>x.sets?.length);if(!S.bmus)S.bmus="chest";}
   save(k);render();
 }
 document.addEventListener("change",ev=>{const el=ev.target;if(!el.dataset?.sess)return;el.blur();pickSession(S.date,el.value);});
@@ -1913,7 +2014,7 @@ function programToText(P,W){
     "\nDAYS: "+Object.keys(W).sort((a,b)=>((+a+6)%7)-((+b+6)%7)).map(d=>`${dn[d]}=${W[d]}`).join(", ");
 }
 function applyProgram(P,W){
-  PROGRAM=P;WEEK=W;ORDER=Object.keys(P);SESSIONS=[...ORDER,"Rest"];
+  PROGRAM=P;WEEK=W;ORDER=Object.keys(P);SESSIONS=[...ORDER,"Custom","Rest"];
   SC={"Rest":"#8f9ab0","Custom":"#5b8cff"};ORDER.forEach((x,i)=>SC[x]=PALETTE[i%PALETTE.length]);
   PLAN_OF={};Object.values(P).forEach(p=>p.ex.forEach(([n,pl,note,pick])=>{(pick||[n]).forEach(x=>{if(!PLAN_OF[x])PLAN_OF[x]={plan:pl,note};});}));
 }
