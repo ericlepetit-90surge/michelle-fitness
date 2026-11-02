@@ -643,7 +643,7 @@ const EQUIPS=[["all","Everything"],["home","Dumbbells + bench"],["cable","Cables
 const eqOk=(nm,f)=>f==="all"||(f==="home"?["db","home"].includes(eqOf(nm)):eqOf(nm)===f||(f==="bw"&&eqOf(nm)==="home"));
 const MGROUPS=[["chest","Chest",["chest"]],["back","Back",["back"]],["shoulders","Shoulders",["sdelt","fdelt","rdelt"]],["arms","Arms",["biceps","triceps"]],["legs","Legs",["quads","hams","glutes","calves"]],["abs","Abs",["abs"]],["cardio","Cardio",["cardio"]]];
 const KNEE_LOAD=/squat|leg press|leg extension|lunge|step-up/i;
-function defaultPlan(nm){if(PLAN_OF[nm])return PLAN_OF[nm].plan;const m=(EX[nm]||{}).m;if(m==="cardio")return "20 min";
+function defaultPlan(nm){if(PLAN_OF[nm])return PLAN_OF[nm].plan;const m=(EX[nm]||{}).m;if(m==="cardio")return "20 min";if(/extension|skull/i.test(nm)&&m==="triceps")return "3×10–12";
   return ["sdelt","fdelt","rdelt","biceps","triceps","calves","abs"].includes(m)||/fly|raise|curl|kickback|extension/i.test(nm)?"3×10–15":"3×8–12";}
 function vBuilder(k,d){const f=S.settings.equip||"all",g=S.bmus||"",ex=d?.exercises||[],have=new Set(ex.map(e=>e.name)),wk=bWeekSets(k);
   const pool=Object.keys(EX).filter(nm=>eqOk(nm,f));
@@ -722,6 +722,7 @@ function e1rm(w,r){return w*(1+r/30);}
 function parsePlan(plan){const m=String(plan||"").match(/(\d+)\s*×\s*(\d+)(?:\s*[–-]\s*(\d+))?/);if(!m)return null;return {n:+m[1],lo:+m[2],hi:+(m[3]||m[2])};}
 function inc(name,w){
   if(/machine/i.test(name)) return 10;
+  if(/\bDB\b|dumbbell|goblet|concentration|arnold/i.test(name)) return 5;
   if(/squat|deadlift|leg press|hip thrust|romanian|row$|t-bar/i.test(name)&&!/split/i.test(name)) return 10;
   if(Math.abs(w/5.5-Math.round(w/5.5))<0.01) return 5.5;
   return 5;
@@ -844,12 +845,17 @@ function vStrength(){
 function target(e,beforeKey){
   const P=parsePlan(e.plan); if(!P) return null;
   const prev=lastFor(e.name,beforeKey), rng=P.lo===P.hi?`${P.lo}`:`${P.lo}–${P.hi}`;
+  const SF={"Flat DB press":["Incline DB press",1],"Chest-supported DB row":["Single-arm DB row",0.8],"Concentration curl":["DB curl",0.8],"DB skull crusher":["DB overhead extension (one dumbbell)",0.5],"DB Romanian deadlift":["Romanian deadlift",0.3]}[e.name];
+  if(!prev&&SF){const lf=lastFor(SF[0],beforeKey),mx=lf?Math.max(0,...lf.e.sets.map(x=>n(x.w))):0;
+    if(mx>0){const w0=Math.max(5,Math.round(mx*SF[1]/5)*5);return {kind:"new",w:w0,text:`${w0} × ${rng}, ${P.n} sets`,why:`First time. Start around ${w0}${SF[1]<1?" each":""} (based on your ${SF[0]} at ${mx}); adjust after set 1.`};}}
   if(!prev) return {kind:"new",w:"",text:`${P.n} sets × ${rng}`,why:EX[e.name]?.bw?`First time: bodyweight, controlled reps, stop about 2 reps short of failure.`:`First time: pick a weight that leaves about 2 reps in the tank at ${P.hi}.`};
   const s=suggest(e.name,prev.e.sets,P,rng);
   /* back after a layoff (12+ days): ease in at about 85% */
   const gap=Math.round((new Date(beforeKey)-new Date(prev.k))/864e5),mx=Math.max(0,...prev.e.sets.map(x=>n(x.w)));
-  if(gap>=12&&mx>0){const nw=Math.max(5,Math.round(Math.min(n(s.w)||mx,mx*0.85)/5)*5);
-    return {kind:"down",w:nw,goal:P.lo,text:`${nw} × ${rng}, ${P.n} sets`,why:`Last done ${gap} days ago at ${mx}. Ease back in at ${nw} (about 85%) and own the reps; build back up next time.`};}
+  /* only ease in when the whole muscle has been resting: training it with other exercises keeps it conditioned */
+  const mus=muscleOf(e),mk=sortedKeys().filter(x=>x<beforeKey&&(S.days[x].exercises||[]).some(y=>y.sets?.length&&muscleOf(y)===mus)).pop(),mgap=mk?Math.round((new Date(beforeKey)-new Date(mk))/864e5):gap;
+  if(gap>=12&&mgap>=12&&mx>0){const nw=Math.max(5,Math.round(Math.min(n(s.w)||mx,mx*0.85)/5)*5);
+    return {kind:"down",w:nw,goal:P.lo,text:`${nw} × ${rng}, ${P.n} sets`,why:`Last done ${gap} days ago at ${mx}, and you haven't trained ${MUSCLE[mus]?MUSCLE[mus].toLowerCase():"that muscle"} since. Ease back in at ${nw} (about 85%) and own the reps; build back up next time.`};}
   return s;
 }
 function suggest(name,sets,P,rng){
