@@ -4,6 +4,7 @@
 .water{margin-top:14px;padding:14px;border-radius:14px;background:color-mix(in srgb,#38bdf8 10%,transparent);border:1px solid color-mix(in srgb,#38bdf8 35%,transparent)}.water b{font-size:20px}.wtot{font:700 26px var(--display)}.wtot small{font-size:16px;color:var(--muted)}.wbar{height:12px;border-radius:8px;background:color-mix(in srgb,var(--ink) 12%,transparent);margin:10px 0;overflow:hidden}.wbar>div{height:100%;background:#38bdf8;border-radius:8px}.wbtns{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px}.wbtns .btn{font-size:19px;padding:12px 16px;min-width:92px}
 .ppq{border-top:1px solid var(--line);padding:12px 0;display:flex;flex-direction:column;gap:8px}.ppqtop{display:flex;gap:10px;align-items:flex-start}.ppqtop img{width:96px;height:128px;object-fit:cover;border-radius:10px;flex:0 0 auto}.ppx{font-size:22px;padding:4px 8px}
 .blist{display:flex;flex-direction:column;margin-top:8px}.brow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}.brow b{font-size:18px;display:block}.brow small{display:block;color:var(--muted);font-size:15px;margin-top:2px}
+.attpick{margin:6px 0 2px}.attpick .note{display:block;margin-bottom:4px}
 </style></head><body>
 <title>Michelle Fitness</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -619,7 +620,7 @@ function slugEx(name){return String(name).toLowerCase().replace(/[^a-z0-9]+/g,"-
 function muscleOf(e){const nm=e.swapOf||e.name;return (EX[nm]||EX[e.name]||{}).m||guessMuscle(e.name);}
 function guessMuscle(nm){nm=nm.toLowerCase();
   if(/curl/.test(nm)&&!/leg/.test(nm))return "biceps";if(/tricep|pushdown|extension|skull|dip/.test(nm)&&!/leg|back/.test(nm))return "triceps";
-  if(/lateral|side/.test(nm))return "sdelt";if(/rear|face pull/.test(nm))return "rdelt";if(/press|fly|chest/.test(nm)&&!/leg|shoulder/.test(nm))return "chest";
+  if(/lateral|side/.test(nm))return "sdelt";if(/rear|face pull/.test(nm))return "rdelt";if(/press|fly|flies|pec|chest/.test(nm)&&!/leg|shoulder/.test(nm))return "chest";
   if(/row|pulldown|pull-up|chin/.test(nm))return "back";if(/squat|leg press|extension|lunge/.test(nm))return "quads";if(/leg curl|rdl|romanian/.test(nm))return "hams";
   if(/calf/.test(nm))return "calves";if(/crunch|raise|ab|plank|chop/.test(nm))return "abs";return "other";}
 function restFor(e){const i=exInfo(e.name),sw=e.swapOf?exInfo(e.swapOf):{};const r=i.rest??sw.rest;if(r!=null)return n(r);return HEAVY.test(e.name)?150:/machine|row|pulldown|press/i.test(e.name)?105:70;}
@@ -705,8 +706,15 @@ function setSync(t){document.getElementById("sync").textContent=t;}
 
 /* ---------- history helpers ---------- */
 function sortedKeys(){return Object.keys(S.days).sort();}
-function lastFor(name,before){
+/* attachment (handle) for cable work: the same weight feels different on a rope vs a bar */
+const ATTS=["Rope","Straight bar","EZ bar","V-handle","D-handle","Wide bar"];
+function needsAtt(nm){return (typeof eqOf==="function"&&eqOf(nm)==="cable")||/cable|pulldown|pushdown|face pull|rope/i.test(nm);}
+function lastAtt(name,before){const ks=sortedKeys().filter(k=>k<before).reverse();for(const k of ks){const e=(S.days[k].exercises||[]).find(x=>x.name===name&&x.att);if(e)return e.att;}return "";}
+function attOf(e,k){return e.att||(needsAtt(e.name)?lastAtt(e.name,k):"");}
+function lastFor(name,before,att){
   const ks=sortedKeys().filter(k=>k<before).reverse();
+  if(att){for(const k of ks){const e=(S.days[k].exercises||[]).find(x=>x.name===name&&x.sets&&x.sets.length&&x.att===att);if(e) return {k,e};}
+    for(const k of ks){const e=(S.days[k].exercises||[]).find(x=>x.name===name&&x.sets&&x.sets.length&&!x.att);if(e) return {k,e};}}
   for(const k of ks){const e=(S.days[k].exercises||[]).find(x=>x.name===name&&x.sets&&x.sets.length);if(e) return {k,e};}
   return null;
 }
@@ -844,7 +852,7 @@ function vStrength(){
 /* ---------- progression (double progression + reps in reserve) ---------- */
 function target(e,beforeKey){
   const P=parsePlan(e.plan); if(!P) return null;
-  const prev=lastFor(e.name,beforeKey), rng=P.lo===P.hi?`${P.lo}`:`${P.lo}–${P.hi}`;
+  const att=attOf(e,beforeKey),prev=lastFor(e.name,beforeKey,att), rng=P.lo===P.hi?`${P.lo}`:`${P.lo}–${P.hi}`;
   const SF={"Flat DB press":["Incline DB press",1],"Chest-supported DB row":["Single-arm DB row",0.8],"Concentration curl":["DB curl",0.8],"DB skull crusher":["DB overhead extension (one dumbbell)",0.5],"DB Romanian deadlift":["Romanian deadlift",0.3]}[e.name];
   if(!prev&&SF){const lf=lastFor(SF[0],beforeKey),mx=lf?Math.max(0,...lf.e.sets.map(x=>n(x.w))):0;
     if(mx>0){const w0=Math.max(5,Math.round(mx*SF[1]/5)*5);return {kind:"new",w:w0,text:`${w0} × ${rng}, ${P.n} sets`,why:`First time. Start around ${w0}${SF[1]<1?" each":""} (based on your ${SF[0]} at ${mx}); adjust after set 1.`};}}
@@ -853,9 +861,9 @@ function target(e,beforeKey){
   /* back after a layoff (12+ days): ease in at about 85% */
   const gap=Math.round((new Date(beforeKey)-new Date(prev.k))/864e5),mx=Math.max(0,...prev.e.sets.map(x=>n(x.w)));
   /* only ease in when the whole muscle has been resting: training it with other exercises keeps it conditioned */
-  const mus=muscleOf(e),mk=sortedKeys().filter(x=>x<beforeKey&&(S.days[x].exercises||[]).some(y=>y.sets?.length&&muscleOf(y)===mus)).pop(),mgap=mk?Math.round((new Date(beforeKey)-new Date(mk))/864e5):gap;
+  const mus=muscleOf(e),mk=sortedKeys().filter(x=>x<=beforeKey&&(S.days[x].exercises||[]).some(y=>y.sets?.length&&muscleOf(y)===mus&&(x<beforeKey||y.name!==e.name))).pop(),mgap=mk?Math.round((new Date(beforeKey)-new Date(mk))/864e5):gap;
   if(gap>=12&&mgap>=12&&mx>0){const nw=Math.max(5,Math.round(Math.min(n(s.w)||mx,mx*0.85)/5)*5);
-    return {kind:"down",w:nw,goal:P.lo,text:`${nw} × ${rng}, ${P.n} sets`,why:`Last done ${gap} days ago at ${mx}, and you haven't trained ${MUSCLE[mus]?MUSCLE[mus].toLowerCase():"that muscle"} since. Ease back in at ${nw} (about 85%) and own the reps; build back up next time.`};}
+    return {kind:"down",w:nw,goal:P.lo,text:`${nw} × ${rng}, ${P.n} sets`,why:`Last ${e.name}: ${gap} days ago at ${mx}. No ${MUSCLE[mus]?MUSCLE[mus].toLowerCase():"work for that muscle"} in ${mgap} days either, so ease back in at ${nw} (about 85%) and own the reps; build back up next time.`};}
   return s;
 }
 function suggest(name,sets,P,rng){
@@ -913,9 +921,9 @@ setInterval(tick,1000);
 /* ---------- exercise card ---------- */
 S.entry={};S.ui={form:{},swap:{},tip:{},more:{}};S.reorder=false;S.editEx=null;
 function exCard(e,i,k,locked,act){
-  const info=exInfo(e.name),P=parsePlan(e.plan),prev=lastFor(e.name,k),tg=target(e,k),sets=e.sets||[];
+  const info=exInfo(e.name),P=parsePlan(e.plan),curAtt=attOf(e,k),prev=lastFor(e.name,k,curAtt),prevAny=curAtt?lastFor(e.name,k):prev,tg=target(e,k),sets=e.sets||[];
   if(e.done&&!S.ui.form[i]){const tp=sets.length?topSet(sets):null;
-    return `<section class="card exdone"><div class="row" style="align-items:center"><span class="dn"><b>✓ ${esc(e.name)}</b><small>${(()=>{const P2=parsePlan(e.plan);return P2&&sets.length<P2.n?`done, ${sets.length}/${P2.n} sets`:`${sets.length} set${sets.length===1?"":"s"}`;})()}${tp?" · top "+esc(setTxt(tp)):""}</small></span>${locked?"":`<button class="btn ghost small" data-act="exreopen" data-i="${i}">Reopen</button>`}</div></section>`;}
+    return `<section class="card exdone"><div class="row" style="align-items:center"><span class="dn"><b>✓ ${esc(e.name)}${e.att?` (${esc(e.att.toLowerCase())})`:""}</b><small>${(()=>{const P2=parsePlan(e.plan);return P2&&sets.length<P2.n?`done, ${sets.length}/${P2.n} sets`:`${sets.length} set${sets.length===1?"":"s"}`;})()}${tp?" · top "+esc(setTxt(tp)):""}</small></span>${locked?"":`<button class="btn ghost small" data-act="exreopen" data-i="${i}">Reopen</button>`}</div></section>`;}
   const ent=S.entry[i]||(S.entry[i]={rir:null,tags:[]});
   const bw=isBW(e),addW=bw&&(ent.addW??sets.some(s=>n(s.w)>0));
   const lastW=sets.length?sets[sets.length-1].w:(tg&&tg.w!==""?tg.w:(prev?Math.max(...prev.e.sets.map(s=>n(s.w))):""));
@@ -923,7 +931,7 @@ function exCard(e,i,k,locked,act){
   const full=P&&sets.length>=P.n;
   const topHit=P&&sets.length>=P.n&&sets.filter(s=>n(s.w)===Math.max(...sets.map(x=>n(x.w)))).every(s=>n(s.r)>=P.hi);
   let h=`<section class="card excard">
-    <div class="ex-head"><h3>${esc(e.name)}</h3>${locked?"":`<button class="link" data-act="delex" data-i="${i}" aria-label="Remove ${esc(e.name)}">✕</button>`}</div>
+    <div class="ex-head"><h3>${esc(e.name)}${attOf(e,k)?` <small style="font-weight:600;color:var(--muted)">(${esc(attOf(e,k).toLowerCase())})</small>`:""}</h3>${locked?"":`<button class="link" data-act="delex" data-i="${i}" aria-label="Remove ${esc(e.name)}">✕</button>`}</div>
     ${e.swapOf?`<div class="note">Swapped from ${esc(e.swapOf)}${!sets.length&&!locked?` · <button class="txtbtn" data-act="unswap" data-i="${i}">Back to ${esc(e.swapOf)}</button>`:""}</div>`:""}
     ${e.pick&&!sets.length&&!locked?`<div class="chips">${e.pick.map(p=>`<button class="chip" data-act="pickex" data-i="${i}" data-n="${esc(p)}" aria-pressed="${p===e.name}">${esc(p)}</button>`).join("")}</div>`:""}
     <div class="exbtns"><button data-act="formtog" data-i="${i}" aria-pressed="${!!S.ui.form[i]}">Form</button>${locked?"":`<button data-act="swaptog" data-i="${i}" aria-pressed="${!!S.ui.swap[i]}">Swap</button>`}<a href="${esc(videoFor(e.name))}" target="_blank" rel="noopener">▶ How-to video</a>${locked?"":`<button data-act="bwtog" data-n="${esc(e.name)}" aria-pressed="${bw}">${bw?"✓ Bodyweight":"Bodyweight"}</button>`}</div>
@@ -931,7 +939,8 @@ function exCard(e,i,k,locked,act){
     ${S.ui.form[i]?vForm(e.name,i):""}
     ${S.ui.swap[i]?vSwap(e,i):""}
     ${e.note?`<div class="note">${esc(e.note)}</div>`:""}
-    ${prev?`<div class="last">Last · ${short(prev.k)}: ${prev.e.sets.map(s=>`<b>${esc(setTxt(s))}</b>`).join(" ")}</div>`:""}
+    ${needsAtt(e.name)&&!locked&&!sets.length?`<div class="attpick"><span class="note">Handle:</span><div class="chips">${[...new Set([...ATTS,...(attOf(e,k)&&!ATTS.includes(attOf(e,k))?[attOf(e,k)]:[])])].map(a=>`<button class="chip sm" data-act="attset" data-i="${i}" data-a="${esc(a)}" aria-pressed="${attOf(e,k)===a}">${esc(a)}</button>`).join("")}<button class="chip sm ghost" data-act="attother" data-i="${i}">Other…</button></div>${S.ui.attOther===i?`<form class="add" data-form="att" data-i="${i}" style="grid-template-columns:1fr auto;margin-top:6px"><input class="f" name="a" placeholder="e.g. Single rope, MAG grip" autocomplete="off"><button class="btn small" type="submit">Set</button></form>`:""}</div>`:""}
+    ${prev?`<div class="last">Last · ${short(prev.k)}${prev.e.att?` (${esc(prev.e.att.toLowerCase())})`:""}: ${prev.e.sets.map(s=>`<b>${esc(setTxt(s))}</b>`).join(" ")}</div>`:""}${curAtt&&prevAny&&prevAny.e.att&&prevAny.e.att!==curAtt?`<div class="note" style="color:var(--warn)">⚠ Handle changed: last time (${short(prevAny.k)}) you used ${esc(prevAny.e.att)}. Weights on different handles aren't directly comparable${prev&&prev.k!==prevAny.k?`, so the target uses your ${short(prev.k)} session`:""}.</div>`:""}
     ${!tg&&e.plan&&!locked?`<div class="note">Plan: ${esc(e.plan)}</div>`:""}${tg&&!locked?`<div class="target ${tg.kind}"><b>Target: ${esc(tg.text)}</b><span>${esc(tg.why)}</span></div>`:""}
     ${sets.length?`<div class="sets">${sets.map((s,j)=>`<span class="set"><i>${j+1}</i>${esc(setTxt({...s,rir:null}))}${s.rir!=null?`<em>@${rirTxt(s.rir)}</em>`:""}${locked?"":`<button data-act="delset" data-i="${i}" data-j="${j}" aria-label="Delete set ${j+1}">×</button>`}</span>`).join("")}</div>`:""}
     ${topHit&&!locked?(bw&&!sets.some(s=>n(s.w))?`<div class="target up"><b>Top of the range on every set</b><span>Next time make it harder: 3 s lowering, a pause, or add a little weight.</span></div>`:`<div class="target up"><b>Increase weight next time: +${inc(e.name,n(lastW))} lb</b><span>Every set hit the top of the range.</span></div>`):""}`;
@@ -997,7 +1006,7 @@ function recap(k){
   done.forEach(e=>{
     const sets=e.sets,tp=topSet(sets),v=vol(sets),ar=avgRir(sets),P=parsePlan(e.plan);
     /* compare with the last time this exact exercise was done (any day), never with a swapped-in different exercise */
-    const lf=lastFor(e.name,k),pe=lf?lf.e:null;
+    const lf=lastFor(e.name,k,e.att),pe=lf?lf.e:null;
     const cap1=ss=>Math.max(...ss.map(x=>n(x.w)>0?e1rm(n(x.w),n(x.r)+(x.rir!=null?Math.min(n(x.rir),4):1)):0));
     let label="Baseline",cls="hold",ds=null,dv=null;
     if(pe){const pt=topSet(pe.sets),pv=vol(pe.sets);
@@ -1014,6 +1023,7 @@ function recap(k){
       else if(vDn){label="Held (less volume)";cls="hold";}
       else label="Held";
       if(lf.k!==pk)label+=` (vs ${short(lf.k)})`;
+      if(e.att&&pe.att&&pe.att!==e.att){label="New handle";cls="hold";}
       if(n(tp.w)>n(pt.w))out.good.push(`${e.name}: weight up to ${tp.w}`);
       else if(n(tp.w)===n(pt.w)&&n(tp.r)>n(pt.r))out.good.push(`${e.name}: +${n(tp.r)-n(pt.r)} reps at ${tp.w}`);
       if(cls==="down")out.bad.push(`${e.name}: less than last time (${setTxt(pt)} → ${setTxt(tp)})`);}
@@ -1024,7 +1034,7 @@ function recap(k){
       if(sets.length<P.n)out.bad.push(`${e.name}: ${sets.length} of ${P.n} sets`);}
     if(ar!=null&&ar>=3)out.bad.push(`${e.name}: ${rirTxt(Math.round(ar))} reps left on average, too light`);
     if(sets.length>=2&&sets.every(s=>s.rir===0)&&HEAVY.test(e.name))out.bad.push(`${e.name}: every set to failure, too heavy for a big lift`);
-    out.rows.push({name:e.name,label,cls,sets:sets.length,top:tp,vol:Math.round(v),ar,ds,dv,prev:pe?topSet(pe.sets):null});
+    out.rows.push({name:e.name+(e.att?` (${e.att.toLowerCase()})`:""),label,cls,sets:sets.length,top:tp,vol:Math.round(v),ar,ds,dv,prev:pe?topSet(pe.sets):null});
     if(P){const s=suggest(e.name,sets,P);out.next.push({name:e.name,text:s.text,kind:s.kind});}
   });
   // only what was actually in that day's workout counts as skipped, never the current plan
@@ -1696,6 +1706,8 @@ document.addEventListener("click",e=>{
   if(a==="prev"){S.date=addDays(k,-1);render();}
   else if(a==="next"){S.date=addDays(k,1);render();}
   else if(a==="session"){pickSession(k,b.dataset.s);}
+  else if(a==="attset"){const d=ensure(k),e=d.exercises[+b.dataset.i];if(e){e.att=b.dataset.a;S.ui.attOther=null;save(k);render();}}
+  else if(a==="attother"){S.ui.attOther=S.ui.attOther===+b.dataset.i?null:+b.dataset.i;render();}
   else if(a==="bequip"){S.settings.equip=b.dataset.e;saveSettings();render();}
   else if(a==="bmus"){S.bmus=S.bmus===b.dataset.g?"":b.dataset.g;render();}
   else if(a==="badd"){const nm=b.dataset.n,d=ensure(k);if(d.exercises.some(e=>e.name===nm))return;d.exercises.push({name:nm,plan:defaultPlan(nm),...(PLAN_OF[nm]?.note?{note:PLAN_OF[nm].note}:{}),sets:[]});if(!d.session)d.session="Custom";save(k);render();toast(nm+" added");}
@@ -1771,6 +1783,8 @@ document.addEventListener("submit",e=>{
     d.exercises.push({name,plan:defaultPlan(name),sets:[]});
     if(!d.session) d.session="Custom";
     save(k);document.activeElement.blur();render();
+  } else if(f.dataset.form==="att"){
+    const a2=String(fd.get("a")||"").trim().slice(0,30),e=d.exercises[+f.dataset.i];if(a2&&e){e.att=a2[0].toUpperCase()+a2.slice(1);S.ui.attOther=null;save(k);document.activeElement.blur();render();}
   } else if(f.dataset.form==="look"){
     S.look.q=String(fd.get("q")||"");document.activeElement.blur();lookup();
   } else if(f.dataset.form==="food"){
@@ -1808,6 +1822,7 @@ function pickSession(k,s){
 document.addEventListener("change",ev=>{const el=ev.target;if(!el.dataset?.sess)return;el.blur();pickSession(S.date,el.value);});
 function addSet(i){
   const k=S.date,d=ensure(k),e=d.exercises[i];if(!e)return;
+  if(!e.att&&needsAtt(e.name)){const a0=lastAtt(e.name,k);if(a0)e.att=a0;}
   const bw=isBW(e),wEl=document.getElementById("w-"+i);
   const r=String(document.getElementById("r-"+i)?.value||"").trim();let w=String(wEl?.value||"").trim();
   if(bw&&w==="")w="0";
