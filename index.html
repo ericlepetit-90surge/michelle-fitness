@@ -5,7 +5,6 @@
 .ppq{border-top:1px solid var(--line);padding:12px 0;display:flex;flex-direction:column;gap:8px}.ppqtop{display:flex;gap:10px;align-items:flex-start}.ppqtop img{width:96px;height:128px;object-fit:cover;border-radius:10px;flex:0 0 auto}.ppx{font-size:22px;padding:4px 8px}
 .blist{display:flex;flex-direction:column;margin-top:8px}.brow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}.brow b{font-size:18px;display:block}.brow small{display:block;color:var(--muted);font-size:15px;margin-top:2px}
 .attpick{margin:6px 0 2px}.attpick .note{display:block;margin-bottom:4px}
-.wboard{display:flex;flex-direction:column;gap:6px;margin-top:4px}.wkrow{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:5px;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer}.wkrow.on{border-color:var(--accent,#5b8cff);background:color-mix(in srgb,var(--accent,#5b8cff) 10%,transparent)}.wkrow .wtop{display:flex;justify-content:space-between;gap:8px;font-size:17px}.wkrow small{color:var(--muted);font-size:15px}.wkrow .bar{display:flex;height:8px;border-radius:6px;background:var(--line);overflow:hidden}.wkrow .bar i{display:block;height:100%;background:var(--good,#3ecf8e)}.wkrow .bar i.pl{opacity:.45}
 </style></head><body>
 <title>Michelle Fitness</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -321,11 +320,11 @@ table.tl td{font-size:17px;padding:9px 4px;vertical-align:top}table.tl td:first-
 /* ---------- program (pick = choose one on the day; each is tracked as its own exercise) ---------- */
 let PROGRAM = {
   "Glutes A": {focus:"Glutes and hamstrings", ex:[["Hip thrust machine","4×8–12","",["Hip thrust machine","Smith hip thrust","Hip thrust"]],["Romanian deadlift","3×10–12","dumbbells or barbell"],["Cable kickback","3×12–15","each leg"],["Hip abduction machine","3×15–20"],["Lat pulldown","3×10–12"],["Plank","3×30–45","seconds"]]},
-  "Glutes B": {focus:"Glutes and legs", ex:[["Bulgarian split squat","3×8–12","each leg"],["Leg press","3×10–15","feet high and wide on the plate"],["45° back extension","3×12–15","round your upper back, squeeze glutes"],["Seated cable row","3×10–12"],["Seated DB shoulder press","2×10–12"]]},
-  "Glutes C": {focus:"Glute shape and pump", ex:[["Hip thrust machine","3×12–15","lighter, pause 2 s at the top",["Hip thrust machine","Smith hip thrust","Hip thrust"]],["Step-up","3×10–12","each leg, knee-high box"],["Cable pull-through","3×12–15"],["Hip abduction machine","3×20","lean forward slightly"],["Chest press machine","3×10–12"],["Incline walk","20 min"]]}
+  "Glutes B": {focus:"Glutes and legs", ex:[["Bulgarian split squat","3×8–12","each leg · lean forward, push through the front heel"],["Leg press","3×10–15","feet high and wide on the plate"],["45° back extension","3×12–15","round your upper back, squeeze glutes"],["Hip abduction machine","3×15–20","lean forward slightly"],["Seated cable row","3×10–12"],["Seated DB shoulder press","2×10–12"]]},
+  "Glutes C": {focus:"Glute shape and pump", ex:[["Hip thrust machine","3×12–15","lighter, pause 2 s at the top",["Hip thrust machine","Smith hip thrust","Hip thrust"]],["Step-up","3×10–12","each leg, knee-high box · lean forward, drive through the heel"],["Cable pull-through","3×12–15"],["Hip abduction machine","3×20","lean forward slightly"],["Chest press machine","3×10–12"],["Incline walk","20 min"]]}
 };
 const FOCUS = [
-  ["Glutes first, every session","Each workout starts with a big glute move while you're fresh, then a second angle, then a finisher. About 14–18 hard glute sets a week across 3 days."],
+  ["Glutes first, every session","Each workout starts with a big glute move while you're fresh, then a second angle, then a finisher. About 20–25 glute sets a week across 3 days, with the upper glute (abduction) trained every session for a rounder shape."],
   ["Three angles","Hip thrusts and bridges build the most glute muscle. Split squats, step-ups and RDLs train them stretched. Abduction and kickbacks build the upper glute for a rounder shape."],
   ["Progress slowly and steadily","Add a rep each session; when you hit the top of the range on every set, add a little weight. Muscle grows from steady progress over months, not from going to failure every set."],
   ["Eat enough protein","Muscle needs protein: aim for your daily target spread across meals. Eat around maintenance. A big calorie deficit makes building muscle much harder."],
@@ -646,43 +645,20 @@ const eqOk=(nm,f)=>f==="all"||(f==="home"?["db","home"].includes(eqOf(nm)):eqOf(
 const MGROUPS=[["chest","Chest",["chest"]],["back","Back",["back"]],["shoulders","Shoulders",["sdelt","fdelt","rdelt"]],["arms","Arms",["biceps","triceps"]],["legs","Legs",["quads","hams","glutes","calves"]],["abs","Abs",["abs"]],["cardio","Cardio",["cardio"]]];
 const KNEE_LOAD=/squat|leg press|leg extension|lunge|step-up/i;
 function defaultPlan(nm){if(PLAN_OF[nm])return PLAN_OF[nm].plan;const m=(EX[nm]||{}).m;if(m==="cardio")return "20 min";if(/extension|skull/i.test(nm)&&m==="triceps")return "3×10–12";
-  if(/press|row|deadlift|squat|pulldown|pull-up|thrust/i.test(nm)&&!/pushdown|calf/i.test(nm))return "3×8–12";
   return ["sdelt","fdelt","rdelt","biceps","triceps","calves","abs"].includes(m)||/fly|raise|curl|kickback|extension/i.test(nm)?"3×10–15":"3×8–12";}
-/* ---------- weekly hard-set goals per muscle (building phase) ---------- */
-const WEEK_GOAL_DEF={glutes:[14,20],hams:[10,14],quads:[10,14],back:[8,12],sdelt:[8,12],rdelt:[6,8],abs:[8,12],chest:[4,8],triceps:[6,8],biceps:[6,8],calves:[6,8]};
-const GOAL_ORDER=["glutes","hams","quads","back","sdelt","rdelt","abs","chest","triceps","biceps","calves"];
-function weekGoals(){return {...WEEK_GOAL_DEF,...(S.settings.weekGoals||{})};}
-function weekKeys(k){const tt=new Date(k+"T12:00:00"),mon=addDays(k,-((tt.getDay()+6)%7));return [...Array(7)].map((_,i)=>addDays(mon,i));}
-/* a hard set: 5+ reps, not a warm-up (at least 60% of that exercise's top weight that day), not marked 5+ reps left */
-function hardCount(e){const ss=e.sets||[],mx=Math.max(0,...ss.map(x=>n(x.w)));return ss.filter(x=>n(x.r)>=5&&(mx===0||n(x.w)>=mx*0.6)&&!(x.rir!=null&&n(x.rir)>=5)).length;}
-function hardWeek(k){const out={};weekKeys(k).filter(x=>x<=k).forEach(x=>(S.days[x]?.exercises||[]).forEach(e=>{const m=muscleOf(e);out[m]=(out[m]||0)+hardCount(e);}));return out;}
-function plannedLeft(d){const out={};(d?.exercises||[]).forEach(e=>{const P=parsePlan(e.plan);if(!P)return;const m=muscleOf(e);out[m]=(out[m]||0)+Math.max(0,P.n-(e.sets||[]).length);});return out;}
-function weekNeed(k,d){const G=weekGoals(),done=hardWeek(k),plan=plannedLeft(d),yest=addDays(k,-1),ys={};
-  (S.days[yest]?.exercises||[]).forEach(e=>{const m=muscleOf(e);ys[m]=(ys[m]||0)+hardCount(e);});
-  return GOAL_ORDER.filter(m=>G[m]).map(m=>{const [lo,hi]=G[m],dn=done[m]||0,pl=plan[m]||0,left=Math.max(0,lo-dn-pl);return {m,lo,hi,done:dn,plan:pl,left,yest:ys[m]||0};});}
-function vWeekBoard(k,d){const W=weekNeed(k,d),sel=S.bmus||"",daysLeft=weekKeys(k).filter(x=>x>=k).length;
-  const todo=W.filter(w=>w.left>0&&w.hi>0).sort((a,b)=>(a.yest?1:0)-(b.yest?1:0)||(b.left/b.lo)-(a.left/a.lo));
-  const sug=todo.filter(w=>!w.yest).slice(0,4);
-  const rows=[...W].filter(w=>w.hi>0).sort((a,b)=>((a.done+a.plan)/a.lo)-((b.done+b.plan)/b.lo));
-  return `<span class="label" style="margin-top:8px">This week · ${daysLeft} day${daysLeft>1?"s":""} left</span>
-    ${sug.length?`<div class="target up" style="margin:4px 0 8px"><b>Suggested today</b><span>${sug.map(w=>`${MUSCLE[w.m]}: ${Math.min(w.left,6)} sets`).join(" · ")}${W.some(w=>w.yest&&w.left>0)?`<br>Resting: ${W.filter(w=>w.yest&&w.left>0).map(w=>MUSCLE[w.m]).join(", ")} (trained yesterday)`:""}</span></div>`:`<div class="target up" style="margin:4px 0 8px"><b>Weekly targets covered</b><span>Every muscle has its minimum. Extra sets are optional.</span></div>`}
-    <div class="wboard">${rows.map(w=>{const tot=w.done+w.plan,pct=Math.min(100,tot/w.hi*100),ok=tot>=w.lo;
-      return `<button class="wkrow ${sel===w.m?"on":""}" data-act="bmus" data-g="${w.m}" aria-pressed="${sel===w.m}"><span class="wtop"><b>${MUSCLE[w.m]}</b><span>${ok?"✓ ":""}${w.done}${w.plan?` +${w.plan}`:""} / ${w.lo}–${w.hi}</span></span><span class="bar"><i style="width:${Math.min(100,w.done/w.hi*100)}%"></i><i class="pl" style="width:${Math.max(0,pct-Math.min(100,w.done/w.hi*100))}%"></i></span><small>${ok?"Target reached":`${w.left} to go`}${w.yest?" · trained yesterday":""}</small></button>`;}).join("")}</div>
-    <div class="note">Counts hard sets: 5+ reps, warm-ups excluded. Lighter bar = sets planned today but not logged yet. Tap a muscle to see its exercises.</div>`;}
 function vBuilder(k,d){const f=S.settings.equip||"all",g=S.bmus||"",ex=d?.exercises||[],have=new Set(ex.map(e=>e.name)),wk=bWeekSets(k);
   const pool=Object.keys(EX).filter(nm=>eqOk(nm,f));
   const grp=MGROUPS.filter(([id,,ms])=>pool.some(nm=>ms.includes(EX[nm].m)));
   const cnt=ms=>ms.reduce((a,m)=>a+(wk[m]||0),0);
   let h=`<section class="card"><span class="label">${d?.session==="Custom"?"Build your workout":"Add an exercise"}</span>
-    <div class="note">Pick your equipment, then a muscle from this week's board, and tap <b>+ Add</b>. Sets are sized to what that muscle still needs this week.</div>
+    <div class="note">Pick your equipment, then a muscle, and tap <b>+ Add</b> as you go. Each exercise keeps its own history and targets.</div>
     <span class="label" style="margin-top:6px">Equipment</span><div class="chips">${EQUIPS.map(([id,l])=>`<button class="chip sm" data-act="bequip" data-e="${id}" aria-pressed="${f===id}">${l}</button>`).join("")}</div>
-    ${vWeekBoard(k,d)}`;
-  if(g){const ms=MGROUPS.some(x=>x[0]===g)?(MGROUPS.find(x=>x[0]===g)||[])[2]:[g],need=(weekNeed(k,d).find(w=>w.m===g)||{}).left;
-    h+=`<span class="label" style="margin-top:8px">${esc(MUSCLE[g]||g)} exercises${need?` · ${need} sets to go`:""}</span>`;
+    <span class="label" style="margin-top:6px">Muscle <span class="note" style="text-transform:none;letter-spacing:0">(sets this week)</span></span><div class="chips">${grp.map(([id,l,ms])=>`<button class="chip sm" data-act="bmus" data-g="${id}" aria-pressed="${g===id}">${l}${id!=="cardio"?` · ${cnt(ms)}`:""}</button>`).join("")}</div>`;
+  if(g){const ms=(MGROUPS.find(x=>x[0]===g)||[])[2]||[];
     const list=pool.filter(nm=>ms.includes(EX[nm].m)).sort((a,b)=>(lastFor(b,k)?1:0)-(lastFor(a,k)?1:0)||a.localeCompare(b));
     h+=`<div class="blist">${list.map(nm=>{const lf=lastFor(nm,k),tp=lf?topSet(lf.e.sets):null;
       return `<div class="brow"><div><b>${esc(nm)}</b><small>${esc(MUSCLE[EX[nm].m]||"")} · ${esc(defaultPlan(nm))}${tp?` · last ${esc(setTxt(tp))} (${short(lf.k)})`:" · new"}</small>${KNEE_LOAD.test(nm)?`<small style="color:var(--warn)">Loads the knee: skip while it heals</small>`:""}</div>${have.has(nm)?`<span class="badge">Added</span>`:`<button class="btn small" data-act="badd" data-n="${esc(nm)}">+ Add</button>`}</div>`;}).join("")||`<div class="note">Nothing for this muscle with that equipment.</div>`}</div>`;}
-
+  else h+=`<div class="note" style="margin-top:4px">Tap a muscle to see the exercises.</div>`;
   const names=[...new Set([...Object.keys(PLAN_OF),...Object.keys(EX),...sortedKeys().flatMap(x=>(S.days[x].exercises||[]).map(e=>e.name))])].sort();
   h+=`<span class="label" style="margin-top:10px">Not listed? Type it</span><form class="add" data-form="ex" style="grid-template-columns:1fr auto">
       <input class="f" id="newex" name="name" list="exnames" placeholder="e.g. Hammer curl" autocomplete="off">
@@ -1734,7 +1710,7 @@ document.addEventListener("click",e=>{
   else if(a==="attother"){S.ui.attOther=S.ui.attOther===+b.dataset.i?null:+b.dataset.i;render();}
   else if(a==="bequip"){S.settings.equip=b.dataset.e;saveSettings();render();}
   else if(a==="bmus"){S.bmus=S.bmus===b.dataset.g?"":b.dataset.g;render();}
-  else if(a==="badd"){const nm=b.dataset.n,d=ensure(k);if(d.exercises.some(e=>e.name===nm))return;const need=(weekNeed(k,d).find(w=>w.m===(EX[nm]||{}).m)||{}).left,base=defaultPlan(nm),nn=need>0?Math.max(2,Math.min(4,need)):null;d.exercises.push({name:nm,plan:nn&&/^\d+×/.test(base)?base.replace(/^\d+×/,nn+"×"):defaultPlan(nm),...(PLAN_OF[nm]?.note?{note:PLAN_OF[nm].note}:{}),sets:[]});if(!d.session)d.session="Custom";save(k);render();toast(nm+" added");}
+  else if(a==="badd"){const nm=b.dataset.n,d=ensure(k);if(d.exercises.some(e=>e.name===nm))return;d.exercises.push({name:nm,plan:defaultPlan(nm),...(PLAN_OF[nm]?.note?{note:PLAN_OF[nm].note}:{}),sets:[]});if(!d.session)d.session="Custom";save(k);render();toast(nm+" added");}
   else if(a==="delex"){const d=ensure(k);d.exercises.splice(+b.dataset.i,1);S.entry={};S.ui={form:{},swap:{},tip:{},more:{}};save(k);render();}
   else if(a==="delset"){const d=ensure(k);d.exercises[+b.dataset.i].sets.splice(+b.dataset.j,1);save(k);render();}
   else if(a==="delfood"){const d=ensure(k);d.food.splice(+b.dataset.i,1);save(k);render();}
@@ -1840,7 +1816,7 @@ function pickSession(k,s){
   S.chgSess=null;const d=ensure(k);d.session=s;S.entry={};S.ui={form:{},swap:{},tip:{},more:{}};
   if(PROGRAM[s]&&!d.exercises.some(x=>x.sets?.length)){loadSession(d,s);}
   if(s==="Rest"&&!d.exercises.some(x=>x.sets?.length)) d.exercises=[];
-  if(s==="Custom"){d.exercises=d.exercises.filter(x=>x.sets?.length);S.bmus="";}
+  if(s==="Custom"){d.exercises=d.exercises.filter(x=>x.sets?.length);if(!S.bmus)S.bmus="chest";}
   save(k);render();
 }
 document.addEventListener("change",ev=>{const el=ev.target;if(!el.dataset?.sess)return;el.blur();pickSession(S.date,el.value);});
