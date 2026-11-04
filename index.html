@@ -1078,7 +1078,7 @@ function vToday(){
   if(!ex.length){
     h+=`<section class="card empty">${cur==="Rest"?"Rest day. Get your steps in.":`${cur==="Custom"?"Empty workout. Add exercises below as you go.":`No exercises yet. Tap <b>${esc(planned==="Rest"?"a session":planned)}</b> above to load the plan, or build your own below.`}`}</section>`;
   } else {
-    const order=[...ex.keys()].filter(i=>!ex[i].done).concat([...ex.keys()].filter(i=>ex[i].done).sort((a,b)=>n(ex[a].doneAt)-n(ex[b].doneAt)));
+    const order=[...ex.keys()].filter(i=>!ex[i].done&&ex[i].sets?.length).sort((a,b)=>n(ex[b].sets[0].t)-n(ex[a].sets[0].t)).concat([...ex.keys()].filter(i=>!ex[i].done&&!ex[i].sets?.length)).concat([...ex.keys()].filter(i=>ex[i].done).sort((a,b)=>n(ex[a].doneAt)-n(ex[b].doneAt)));
     order.forEach(i=>{h+=exCard(ex[i],i,k,false);});
   }
   if(hasSets){const need=ex.filter(e=>parsePlan(e.plan)&&e.name!=="Incline walk"),allSets=need.every(e=>(e.sets||[]).length>=parsePlan(e.plan).n);
